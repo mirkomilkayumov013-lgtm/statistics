@@ -844,6 +844,11 @@ body {
                     frequency: 'Частота',
                     interval: 'Интервал',
                     intervalFreq: 'Частота интервала',
+                    solveIntervalWidth: 'Ширина интервала',
+                    solveCountValues: 'Подсчёт значений в интервале',
+                    solveValuesIn: 'Значения в',
+                    solveSortSample: 'Сортировка выборки',
+                    solveArrangeAscending: 'Расположить значения по возрастанию',
                     tasks: {
                         sampleCharacteristics: 'Характеристики выборки',
                         empiricalDistribution: 'Эмпирическая функция распределения',
@@ -929,6 +934,11 @@ body {
                     frequency: 'Chastota',
                     interval: 'Interval',
                     intervalFreq: 'Interval chastotasi',
+                    solveIntervalWidth: 'Interval kengligi',
+                    solveCountValues: 'Intervaldagi qiymatlarni hisoblash',
+                    solveValuesIn: 'Qiymatlar',
+                    solveSortSample: 'Tanlamani saralash',
+                    solveArrangeAscending: 'Qiymatlarni o\'sish tartibida joylashtirish',
                     tasks: {
                         sampleCharacteristics: 'Tanlama xarakteristikalari',
                         empiricalDistribution: 'Empirik taqsimot funksiyasi',
@@ -1014,6 +1024,11 @@ body {
                     frequency: 'Frequency',
                     interval: 'Interval',
                     intervalFreq: 'Interval Frequency',
+                    solveIntervalWidth: 'Interval width',
+                    solveCountValues: 'Count values in interval',
+                    solveValuesIn: 'Values in',
+                    solveSortSample: 'Sort the sample',
+                    solveArrangeAscending: 'Arrange values in ascending order',
                     tasks: {
                         sampleCharacteristics: 'Sample Characteristics',
                         empiricalDistribution: 'Empirical Distribution Function',
@@ -1740,7 +1755,8 @@ body {
             const intervals = [];
             for (let i = 0; i < intervalCount; i++) {
                 const lower = this.math.round(min + i * width);
-                const upper = this.math.round(min + (i + 1) * width);
+                // Force last interval upper bound to include max
+                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
                 let count = 0;
                 sample.forEach(x => {
                     if (i === intervalCount - 1) {
@@ -2042,7 +2058,8 @@ body {
             const intervals = [];
             for (let i = 0; i < intervalCount; i++) {
                 const lower = this.math.round(min + i * width);
-                const upper = this.math.round(min + (i + 1) * width);
+                // Force last interval upper bound to include max
+                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
                 let count = 0;
                 sample.forEach(x => {
                     if (i === intervalCount - 1) {
@@ -2315,7 +2332,7 @@ body {
             const width = this.math.round((max - min) / intervalCount);
 
             const steps = [{
-                description: 'Interval width',
+                description: this.i18n.t('solveIntervalWidth'),
                 formula: 'h = (x_max - x_min) / k',
                 substitution: `h = (${max} - ${min}) / ${intervalCount}`,
                 result: width
@@ -2323,7 +2340,8 @@ body {
 
             for (let i = 0; i < intervalCount; i++) {
                 const lower = this.math.round(min + i * width);
-                const upper = this.math.round(min + (i + 1) * width);
+                // Force last interval upper bound to include max
+                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
                 let count = 0;
                 sample.forEach(x => {
                     if (i === intervalCount - 1) {
@@ -2558,8 +2576,8 @@ body {
             const med = this.math.median(sample);
 
             const steps = [{
-                description: 'Sort the sample',
-                formula: 'Arrange values in ascending order',
+                description: this.i18n.t('solveSortSample'),
+                formula: this.i18n.t('solveArrangeAscending'),
                 substitution: sorted.join(', '),
                 result: `n = ${n}`
             }];
@@ -2618,7 +2636,7 @@ body {
             const width = this.math.round((max - min) / intervalCount);
 
             const steps = [{
-                description: 'Interval width',
+                description: this.i18n.t('solveIntervalWidth'),
                 formula: 'h = (x_max - x_min) / k',
                 substitution: `h = (${max} - ${min}) / ${intervalCount}`,
                 result: width
@@ -2626,7 +2644,8 @@ body {
 
             for (let i = 0; i < intervalCount; i++) {
                 const lower = this.math.round(min + i * width);
-                const upper = this.math.round(min + (i + 1) * width);
+                // Force last interval upper bound to include max
+                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
                 let count = 0;
                 sample.forEach(x => {
                     if (i === intervalCount - 1) {
@@ -2637,8 +2656,8 @@ body {
                 });
                 steps.push({
                     description: `[${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
-                    formula: 'Count values in interval',
-                    substitution: `Values in [${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
+                    formula: this.i18n.t('solveCountValues'),
+                    substitution: `${this.i18n.t('solveValuesIn')} [${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
                     result: `n\u1d62 = ${count}`
                 });
             }
@@ -2708,7 +2727,8 @@ body {
                 timerSeconds: 0,
                 timerInterval: null,
                 darkMode: false,
-                language: 'ru'
+                language: 'ru',
+                alreadyChecked: false
             };
         }
 
@@ -2759,6 +2779,7 @@ body {
          * Generate new random data for the current task and re-render
          */
         generateNewData() {
+            this.state.alreadyChecked = false;
             const taskType = this.state.currentTask;
             let data;
 
@@ -2793,8 +2814,17 @@ body {
 
         /**
          * Check all user answers for the current task
+         * Guarded against repeated submission - only scores once per data set
          */
         checkAnswers() {
+            // Prevent score inflation by blocking re-check on same data
+            if (this.state.alreadyChecked) {
+                // Still show highlighting but do not add to score again
+                const results = this.checker.checkAllAnswers();
+                this.checker.highlightResults(results);
+                return;
+            }
+
             const results = this.checker.checkAllAnswers();
             this.checker.highlightResults(results);
 
@@ -2810,6 +2840,7 @@ body {
                     this.updateProgress();
                 }
             }
+            this.state.alreadyChecked = true;
             this.saveProgress();
         }
 
