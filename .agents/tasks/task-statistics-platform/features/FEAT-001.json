@@ -1,0 +1,50 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Create the complete single-file statistics testing platform at /projects/sandbox/statistics/index.html. This is a greenfield implementation of an interactive educational platform for mathematical statistics and probability theory, styled like a CDI/university testing system. The entire application (HTML structure, CSS styling, JavaScript logic) must be in one self-contained file with no external dependencies.",
+  "status": "in_progress",
+  "steps": [
+    "Create /projects/sandbox/statistics/index.html with the complete HTML document structure including DOCTYPE, meta tags, and viewport settings",
+    "Implement CSS section with: custom properties for theming (light/dark mode), light blue-gray background, white card components, clean tables with dark headers, thin borders, soft shadows, rounded corners, professional typography using Inter/Segoe UI/Roboto/Arial fallback stack, responsive design with media queries, smooth animations for hover effects and block appearances, correct/incorrect answer highlighting (green/red), button animations, sticky header styling, input field styling, progress indicator styling",
+    "Implement the App class as the main controller managing: state (current task, score, timer, language), navigation between task types, localStorage persistence for progress, dark mode toggle, language switching (Russian, Uzbek, English), timer functionality, score tracking",
+    "Implement the DataGenerator class with methods for each task type: generateHypothesisTestData(), generateConfidenceIntervalMeanData(), generateConfidenceIntervalProportionData(), generateEmpiricalDistributionData(), generateHistogramData(), generateSampleCharacteristicsData(), generateZTestData(), generateTTestData(), generateVarianceData(), generateStdDevData(), generateMedianData(), generateModeData(), generateIntervalSeriesData(). Each generator must produce realistic random numbers with appropriate ranges.",
+    "Implement the MathEngine class with correct statistical formulas: sampleMean(), correctedVariance() using n-1, standardDeviation(), median(), mode(), range(), relativeFrequencies(), empiricalDistributionFunction(), confidenceIntervalMean(), confidenceIntervalProportion(), zTest(), tTest(), normalDistributionQuantile(), tDistributionQuantile(). All calculations must handle edge cases, use 3 decimal places precision, and never produce NaN/undefined.",
+    "Implement the TaskRenderer class that renders each task type with: problem statement text, data table (where applicable, with dark header, light cells, hover effect), input fields for user answers, formula display, Check button, Solution button, New Data button, result indicator. Must support all 13+ task types listed in requirements.",
+    "Implement the AnswerChecker class: compare user answers with correct ones using configurable tolerance (default 0.01), highlight green for correct / red for incorrect, calculate and display percentage score, handle multiple answer fields per task",
+    "Implement the SolutionDisplay class: show step-by-step solutions with formulas, show number substitution into formulas, show intermediate calculations, show final result. Solutions must be mathematically detailed and educational.",
+    "Implement the i18n system with translations object containing Russian, Uzbek, and English strings for: all UI labels, task descriptions, button text, solution text, error messages. Include a language switcher in the header.",
+    "Implement the header section with: platform title, navigation menu for task types, language switcher (RU/UZ/EN), dark mode toggle, timer display, score/progress counter",
+    "Implement the main content area with: task navigation sidebar or tabs for all 13 task types, active task display area with card styling, progress indicator showing completed tasks",
+    "Implement localStorage integration: save current progress (which tasks completed, scores), save user preferences (language, dark mode), save timer state, restore state on page reload, include a Reset button to clear all saved data",
+    "Implement the Show Answers button that reveals all correct answers for the current task, and ensure New Data button regenerates everything correctly with all values recalculated",
+    "Add detailed code comments throughout explaining the architecture, each class purpose, complex algorithms, and formula derivations"
+  ],
+  "acceptance_criteria": [
+    "File exists at /projects/sandbox/statistics/index.html",
+    "File is valid HTML5 with no syntax errors",
+    "No external URLs, CDNs, or library references exist in the file",
+    "All 13 task types are implemented and functional",
+    "Language switcher toggles between Russian, Uzbek, and English",
+    "Dark mode toggle works",
+    "New Data button generates fresh random data for each task",
+    "Check button validates answers with tolerance and shows green/red highlighting",
+    "Solution button reveals step-by-step mathematical solutions",
+    "Timer counts elapsed time",
+    "Score counter tracks correct answers",
+    "localStorage saves and restores progress",
+    "Tables have dark headers, light cells, hover effects",
+    "Design matches university/CDI platform aesthetic: blue-themed, white cards, professional",
+    "Responsive design works on different screen widths",
+    "No NaN, undefined, or calculation errors in generated data or solutions",
+    "Mathematical formulas are correct (corrected variance uses n-1, confidence intervals use proper quantiles)"
+  ],
+  "verification": [
+    "Run: test -f /projects/sandbox/statistics/index.html && echo 'File exists'",
+    "Run: grep -c 'class ' /projects/sandbox/statistics/index.html to verify multiple JS classes exist",
+    "Run: grep -c 'localStorage' /projects/sandbox/statistics/index.html to verify persistence is implemented",
+    "Run: grep -l 'cdn\\|googleapis\\|unpkg\\|cdnjs\\|jsdelivr' /projects/sandbox/statistics/index.html should return no results (no external deps)",
+    "Run: wc -l /projects/sandbox/statistics/index.html to verify substantial implementation (should be 2000+ lines)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

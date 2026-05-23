@@ -1,0 +1,7 @@
+{
+  "task_id": "task-statistics-platform",
+  "task_description": "Create a fully autonomous single-file HTML application for training and testing statistical problems in a CDI/university platform style. The app must include 13+ task types covering probability theory and mathematical statistics, with data generation, answer checking, step-by-step solutions, multilingual interface (RU/UZ/EN), dark mode, timer, progress tracking, and localStorage persistence. No external dependencies allowed.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}

@@ -1,0 +1,16 @@
+{
+  "project_type": "Single-file HTML/CSS/JS web application - interactive statistics testing platform",
+  "language": "HTML, CSS, JavaScript",
+  "build_system": "None - single file, no build step required",
+  "test_framework": "None - manual browser testing, self-contained",
+  "build_command": "N/A - static HTML file",
+  "test_command": "N/A - open index.html in browser",
+  "verification_instructions": "1. Verify index.html exists at /projects/sandbox/statistics/index.html. 2. Verify it contains valid HTML structure. 3. Verify JS classes and functions are present. 4. Verify no external dependencies are referenced.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "No setup needed - single HTML file that works offline",
+  "environment_constraints": "INTEGRATIONS_ONLY network mode - no external CDNs, fonts, or libraries can be loaded. Everything must be self-contained in one file. No npm, no package managers needed.",
+  "contribution_requirements": "Single file at /projects/sandbox/statistics/index.html containing all HTML, CSS, and JS",
+  "key_patterns": "Greenfield project - establish patterns: modular JS with classes, CSS custom properties for theming, event-driven architecture, state management via class instances, localStorage for persistence",
+  "relevant_files": ["/projects/sandbox/statistics/index.html"],
+  "directory_structure": "/projects/sandbox/statistics/ - root directory containing only index.html"
+}

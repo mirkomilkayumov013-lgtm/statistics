@@ -1,0 +1,3004 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика - Платформа тестирования</title>
+    <!-- 
+        Statistics Testing Platform
+        ============================
+        A fully self-contained, single-file interactive educational platform
+        for mathematical statistics and probability theory.
+        
+        Architecture:
+        - MathEngine: All statistical calculations
+        - DataGenerator: Random data generation for tasks
+        - TaskRenderer: UI rendering for each task type
+        - AnswerChecker: Validates user answers with tolerance
+        - SolutionDisplay: Step-by-step solution generation
+        - I18n: Internationalization (RU, UZ, EN)
+        - App: Main controller orchestrating everything
+        
+        No external dependencies. Works completely offline.
+    -->
+    <style>
+/* ============================================================
+   CSS Custom Properties - Theming System
+   Light and dark mode support via CSS variables
+   ============================================================ */
+:root {
+    /* Light theme (default) */
+    --bg-primary: #f0f4f8;
+    --bg-secondary: #ffffff;
+    --bg-header: #1a2332;
+    --bg-card: #ffffff;
+    --bg-input: #ffffff;
+    --bg-table-header: #2c3e50;
+    --bg-table-row: #ffffff;
+    --bg-table-row-alt: #f8fafc;
+    --bg-table-hover: #e8f0fe;
+    --bg-sidebar: #ffffff;
+    --bg-btn-primary: #3498db;
+    --bg-btn-primary-hover: #2980b9;
+    --bg-btn-success: #27ae60;
+    --bg-btn-success-hover: #219a52;
+    --bg-btn-warning: #f39c12;
+    --bg-btn-warning-hover: #d68910;
+    --bg-btn-danger: #e74c3c;
+    --bg-btn-danger-hover: #c0392b;
+    --bg-correct: #d4edda;
+    --bg-incorrect: #f8d7da;
+    --bg-solution: #f8f9fa;
+    --bg-progress: #e9ecef;
+    --bg-progress-fill: #3498db;
+
+    --text-primary: #2c3e50;
+    --text-secondary: #5a6c7d;
+    --text-header: #ffffff;
+    --text-table-header: #ffffff;
+    --text-muted: #8899aa;
+    --text-btn: #ffffff;
+    --text-link: #3498db;
+    --text-correct: #155724;
+    --text-incorrect: #721c24;
+
+    --border-primary: #dee2e6;
+    --border-input: #ced4da;
+    --border-input-focus: #3498db;
+    --border-card: #e2e8f0;
+    --border-correct: #c3e6cb;
+    --border-incorrect: #f5c6cb;
+
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-header: 0 2px 10px rgba(0, 0, 0, 0.15);
+    --shadow-btn: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
+
+    --font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-header: #0f0f23;
+    --bg-card: #1e2a3a;
+    --bg-input: #2a3a4a;
+    --bg-table-header: #0f1923;
+    --bg-table-row: #1e2a3a;
+    --bg-table-row-alt: #243447;
+    --bg-table-hover: #2a4060;
+    --bg-sidebar: #16213e;
+    --bg-btn-primary: #4aa3df;
+    --bg-btn-primary-hover: #3498db;
+    --bg-solution: #243447;
+    --bg-progress: #2a3a4a;
+    --bg-correct: #1a4a2a;
+    --bg-incorrect: #4a1a1a;
+
+    --text-primary: #e8e8e8;
+    --text-secondary: #b0b8c4;
+    --text-header: #e8e8e8;
+    --text-muted: #7a8a9a;
+    --text-correct: #a3d9b1;
+    --text-incorrect: #f5a0a0;
+
+    --border-primary: #3a4a5a;
+    --border-input: #3a4a5a;
+    --border-card: #2a3a4a;
+
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-header: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   Base Reset and Typography
+   ============================================================ */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+    min-height: 100vh;
+}
+
+/* ============================================================
+   Header - Sticky Navigation Bar
+   ============================================================ */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--bg-header);
+    color: var(--text-header);
+    padding: 12px 24px;
+    box-shadow: var(--shadow-header);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    transition: background-color var(--transition-normal);
+}
+
+.header__title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.header__controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.header__timer {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    background: rgba(255,255,255,0.1);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    min-width: 80px;
+    text-align: center;
+}
+
+.header__score {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    background: rgba(39,174,96,0.2);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    color: #a3d9b1;
+}
+
+.header__lang-switcher {
+    display: flex;
+    gap: 4px;
+}
+
+.header__lang-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--text-header);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.header__lang-btn:hover,
+.header__lang-btn--active {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.5);
+}
+
+.header__dark-toggle {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--text-header);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+}
+
+.header__dark-toggle:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+.header__reset-btn {
+    background: rgba(231,76,60,0.2);
+    border: 1px solid rgba(231,76,60,0.4);
+    color: #f5a0a0;
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+}
+
+.header__reset-btn:hover {
+    background: rgba(231,76,60,0.4);
+}
+
+/* ============================================================
+   Layout - Main Content Area
+   ============================================================ */
+.main {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    gap: 24px;
+    min-height: calc(100vh - 120px);
+}
+
+.sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+.sidebar__card {
+    background: var(--bg-sidebar);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-card);
+    padding: 16px;
+    transition: all var(--transition-normal);
+}
+
+.sidebar__title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.sidebar__nav {
+    list-style: none;
+}
+
+.sidebar__nav-item {
+    padding: 10px 14px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar__nav-item:hover {
+    background: var(--bg-table-hover);
+    color: var(--text-primary);
+}
+
+.sidebar__nav-item--active {
+    background: var(--bg-btn-primary);
+    color: var(--text-btn);
+    font-weight: 600;
+}
+
+.sidebar__nav-item--active:hover {
+    background: var(--bg-btn-primary-hover);
+    color: var(--text-btn);
+}
+
+.sidebar__nav-item-icon {
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar__progress {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-primary);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-progress);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progress-bar__fill {
+    height: 100%;
+    background: var(--bg-progress-fill);
+    border-radius: 4px;
+    transition: width var(--transition-normal);
+}
+
+.progress-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* ============================================================
+   Content Area - Task Display
+   ============================================================ */
+.content {
+    flex: 1;
+    min-width: 0;
+}
+
+.task-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-card);
+    padding: 32px;
+    transition: all var(--transition-normal);
+    animation: fadeIn var(--transition-slow);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.task-card__title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.task-card__description {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.7;
+}
+
+/* ============================================================
+   Tables - Data Display
+   ============================================================ */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.data-table th {
+    background: var(--bg-table-header);
+    color: var(--text-table-header);
+    padding: 12px 16px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.02em;
+}
+
+.data-table td {
+    background: var(--bg-table-row);
+    padding: 10px 16px;
+    text-align: center;
+    font-size: var(--font-size-sm);
+    border-bottom: 1px solid var(--border-primary);
+    transition: background var(--transition-fast);
+}
+
+.data-table tr:nth-child(even) td {
+    background: var(--bg-table-row-alt);
+}
+
+.data-table tr:hover td {
+    background: var(--bg-table-hover);
+}
+
+/* ============================================================
+   Input Fields
+   ============================================================ */
+.input-group {
+    margin: 16px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 180px;
+}
+
+.input-field__label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.input-field__input {
+    padding: 10px 14px;
+    border: 2px solid var(--border-input);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-family: var(--font-family);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+.input-field__input:focus {
+    border-color: var(--border-input-focus);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+.input-field__input--correct {
+    border-color: #27ae60;
+    background: var(--bg-correct);
+    color: var(--text-correct);
+}
+
+.input-field__input--incorrect {
+    border-color: #e74c3c;
+    background: var(--bg-incorrect);
+    color: var(--text-incorrect);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    font-family: var(--font-family);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-btn);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn--primary {
+    background: var(--bg-btn-primary);
+    color: var(--text-btn);
+}
+
+.btn--primary:hover {
+    background: var(--bg-btn-primary-hover);
+}
+
+.btn--success {
+    background: var(--bg-btn-success);
+    color: var(--text-btn);
+}
+
+.btn--success:hover {
+    background: var(--bg-btn-success-hover);
+}
+
+.btn--warning {
+    background: var(--bg-btn-warning);
+    color: var(--text-btn);
+}
+
+.btn--warning:hover {
+    background: var(--bg-btn-warning-hover);
+}
+
+.btn--danger {
+    background: var(--bg-btn-danger);
+    color: var(--text-btn);
+}
+
+.btn--danger:hover {
+    background: var(--bg-btn-danger-hover);
+}
+
+/* ============================================================
+   Solution Display
+   ============================================================ */
+.solution {
+    margin-top: 24px;
+    padding: 24px;
+    background: var(--bg-solution);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-primary);
+    animation: fadeIn var(--transition-normal);
+}
+
+.solution__title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--bg-btn-primary);
+}
+
+.solution__step {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--bg-btn-primary);
+}
+
+.solution__step-title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.solution__step-formula {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 4px 0;
+    padding: 4px 8px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.solution__step-result {
+    font-weight: 600;
+    color: var(--bg-btn-primary);
+    margin-top: 4px;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    border-top: 1px solid var(--border-primary);
+    margin-top: 40px;
+}
+
+/* ============================================================
+   Responsive Design
+   ============================================================ */
+@media (max-width: 1024px) {
+    .main {
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .sidebar {
+        width: 100%;
+        position: static;
+        max-height: none;
+    }
+
+    .sidebar__nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .sidebar__nav-item {
+        flex: 0 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header__controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .task-card {
+        padding: 20px;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-field {
+        min-width: 100%;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .header__title {
+        font-size: var(--font-size-base);
+    }
+
+    .task-card__title {
+        font-size: var(--font-size-xl);
+    }
+}
+
+/* ============================================================
+   Utility and Animation Classes
+   ============================================================ */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 2000px; }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.animate-pulse {
+    animation: pulse 0.3s ease;
+}
+    </style>
+</head>
+<body>
+    <!-- ============================================================
+         Header Section - Navigation, Timer, Score, Controls
+         ============================================================ -->
+    <header class="header" id="header">
+        <div class="header__title" id="headerTitle">Статистика</div>
+        <div class="header__controls">
+            <div class="header__timer" id="timer">00:00</div>
+            <div class="header__score" id="score">0/0</div>
+            <div class="header__lang-switcher">
+                <button class="header__lang-btn header__lang-btn--active" data-lang="ru" onclick="app.toggleLanguage('ru')">RU</button>
+                <button class="header__lang-btn" data-lang="uz" onclick="app.toggleLanguage('uz')">UZ</button>
+                <button class="header__lang-btn" data-lang="en" onclick="app.toggleLanguage('en')">EN</button>
+            </div>
+            <button class="header__dark-toggle" id="darkToggle" onclick="app.toggleDarkMode()">🌙</button>
+            <button class="header__reset-btn" id="resetBtn" onclick="app.resetProgress()">↺</button>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         Main Content - Sidebar Navigation + Task Area
+         ============================================================ -->
+    <main class="main">
+        <aside class="sidebar">
+            <div class="sidebar__card">
+                <div class="sidebar__title" id="sidebarTitle">Задания</div>
+                <ul class="sidebar__nav" id="taskNav">
+                    <!-- Populated by JavaScript -->
+                </ul>
+                <div class="sidebar__progress">
+                    <div class="progress-bar">
+                        <div class="progress-bar__fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0/13</div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="content" id="taskContent">
+            <!-- Task cards rendered here by JavaScript -->
+        </section>
+    </main>
+
+    <!-- ============================================================
+         Footer
+         ============================================================ -->
+    <footer class="footer" id="footer">
+        <p id="footerText">Платформа тестирования по статистике</p>
+    </footer>
+
+    <script>
+    /* ============================================================
+       I18n Class - Internationalization System
+       ============================================================
+       Manages translations for Russian, Uzbek, and English.
+       All UI text is stored here to enable language switching.
+    */
+    class I18n {
+        constructor() {
+            this.currentLang = 'ru';
+            this.translations = {
+                ru: {
+                    headerTitle: 'Статистика - Тестирование',
+                    sidebarTitle: 'Задания',
+                    footerText: 'Платформа тестирования по математической статистике',
+                    darkMode: '🌙',
+                    lightMode: '☀️',
+                    resetBtn: '↺',
+                    btnCheck: 'Проверить',
+                    btnSolution: 'Решение',
+                    btnNewData: 'Новые данные',
+                    btnShowAnswers: 'Показать ответы',
+                    solutionTitle: 'Пошаговое решение',
+                    correct: 'Верно!',
+                    incorrect: 'Неверно',
+                    scoreLabel: 'Счёт',
+                    timerLabel: 'Время',
+                    progressLabel: 'Прогресс',
+                    step: 'Шаг',
+                    formula: 'Формула',
+                    substitution: 'Подстановка',
+                    result: 'Результат',
+                    givenData: 'Дано',
+                    answer: 'Ответ',
+                    sample: 'Выборка',
+                    sampleSize: 'Объём выборки (n)',
+                    mean: 'Среднее',
+                    variance: 'Дисперсия (исправл.)',
+                    stdDev: 'Стандартное отклонение',
+                    median: 'Медиана',
+                    mode: 'Мода',
+                    range: 'Размах',
+                    min: 'Минимум',
+                    max: 'Максимум',
+                    populationMean: 'Среднее генеральной совокупности',
+                    sigma: 'Сигма (σ)',
+                    alpha: 'Уровень значимости (α)',
+                    confidence: 'Уровень доверия',
+                    zValue: 'Z-статистика',
+                    tValue: 'T-статистика',
+                    criticalValue: 'Критическое значение',
+                    conclusion: 'Вывод',
+                    rejectH0: 'H₀ отвергается',
+                    acceptH0: 'H₀ не отвергается',
+                    lowerBound: 'Нижняя граница',
+                    upperBound: 'Верхняя граница',
+                    proportion: 'Доля (p)',
+                    successes: 'Число успехов',
+                    trials: 'Число испытаний',
+                    relFreq: 'Относительная частота',
+                    cumFreq: 'Накопленная частота',
+                    value: 'Значение',
+                    frequency: 'Частота',
+                    interval: 'Интервал',
+                    intervalFreq: 'Частота интервала',
+                    tasks: {
+                        sampleCharacteristics: 'Характеристики выборки',
+                        empiricalDistribution: 'Эмпирическая функция распределения',
+                        histogram: 'Гистограмма относительных частот',
+                        confidenceMean: 'Доверительный интервал для среднего',
+                        confidenceProportion: 'Доверительный интервал для доли',
+                        hypothesisTesting: 'Проверка гипотез',
+                        zTest: 'Z-тест',
+                        tTest: 'T-тест Стьюдента',
+                        variance: 'Вычисление дисперсии',
+                        stdDeviation: 'Стандартное отклонение',
+                        medianCalc: 'Вычисление медианы',
+                        modeCalc: 'Вычисление моды',
+                        intervalSeries: 'Интервальный ряд'
+                    },
+                    taskDescriptions: {
+                        sampleCharacteristics: 'Вычислите все основные характеристики выборки: среднее, дисперсию, стандартное отклонение, медиану, моду, размах, минимум, максимум.',
+                        empiricalDistribution: 'Постройте эмпирическую функцию распределения для данной выборки. Найдите относительные и накопленные частоты.',
+                        histogram: 'Вычислите относительные частоты для построения гистограммы. Определите частоту каждого интервала.',
+                        confidenceMean: 'Найдите доверительный интервал для математического ожидания при заданном уровне доверия.',
+                        confidenceProportion: 'Найдите доверительный интервал для доли (пропорции) при заданном уровне доверия.',
+                        hypothesisTesting: 'Проверьте гипотезу о значении среднего генеральной совокупности. Вычислите статистику и сделайте вывод.',
+                        zTest: 'Выполните Z-тест для проверки гипотезы о среднем при известной дисперсии генеральной совокупности.',
+                        tTest: 'Выполните t-тест Стьюдента для проверки гипотезы о среднем при неизвестной дисперсии.',
+                        variance: 'Вычислите исправленную (выборочную) дисперсию данной выборки.',
+                        stdDeviation: 'Вычислите стандартное отклонение (среднеквадратическое отклонение) выборки.',
+                        medianCalc: 'Найдите медиану данной выборки.',
+                        modeCalc: 'Найдите моду данной выборки.',
+                        intervalSeries: 'Постройте интервальный вариационный ряд и вычислите частоты для каждого интервала.'
+                    }
+                },
+                uz: {
+                    headerTitle: 'Statistika - Test',
+                    sidebarTitle: 'Topshiriqlar',
+                    footerText: 'Matematik statistika bo\'yicha test platformasi',
+                    darkMode: '🌙',
+                    lightMode: '☀️',
+                    resetBtn: '↺',
+                    btnCheck: 'Tekshirish',
+                    btnSolution: 'Yechim',
+                    btnNewData: 'Yangi ma\'lumot',
+                    btnShowAnswers: 'Javoblarni ko\'rsatish',
+                    solutionTitle: 'Bosqichma-bosqich yechim',
+                    correct: 'To\'g\'ri!',
+                    incorrect: 'Noto\'g\'ri',
+                    scoreLabel: 'Ball',
+                    timerLabel: 'Vaqt',
+                    progressLabel: 'Progress',
+                    step: 'Qadam',
+                    formula: 'Formula',
+                    substitution: 'Qo\'yish',
+                    result: 'Natija',
+                    givenData: 'Berilgan',
+                    answer: 'Javob',
+                    sample: 'Tanlama',
+                    sampleSize: 'Tanlama hajmi (n)',
+                    mean: 'O\'rtacha',
+                    variance: 'Dispersiya (tuzatilgan)',
+                    stdDev: 'Standart og\'ish',
+                    median: 'Mediana',
+                    mode: 'Moda',
+                    range: 'Tebranish',
+                    min: 'Minimum',
+                    max: 'Maksimum',
+                    populationMean: 'Umumiy o\'rtacha',
+                    sigma: 'Sigma (σ)',
+                    alpha: 'Ahamiyat darajasi (α)',
+                    confidence: 'Ishonch darajasi',
+                    zValue: 'Z-statistika',
+                    tValue: 'T-statistika',
+                    criticalValue: 'Kritik qiymat',
+                    conclusion: 'Xulosa',
+                    rejectH0: 'H₀ rad etiladi',
+                    acceptH0: 'H₀ rad etilmaydi',
+                    lowerBound: 'Pastki chegara',
+                    upperBound: 'Yuqori chegara',
+                    proportion: 'Ulush (p)',
+                    successes: 'Muvaffaqiyatlar soni',
+                    trials: 'Sinovlar soni',
+                    relFreq: 'Nisbiy chastota',
+                    cumFreq: 'Yig\'ilma chastota',
+                    value: 'Qiymat',
+                    frequency: 'Chastota',
+                    interval: 'Interval',
+                    intervalFreq: 'Interval chastotasi',
+                    tasks: {
+                        sampleCharacteristics: 'Tanlama xarakteristikalari',
+                        empiricalDistribution: 'Empirik taqsimot funksiyasi',
+                        histogram: 'Nisbiy chastotalar gistogrammasi',
+                        confidenceMean: 'O\'rtacha uchun ishonch intervali',
+                        confidenceProportion: 'Ulush uchun ishonch intervali',
+                        hypothesisTesting: 'Gipotezalarni tekshirish',
+                        zTest: 'Z-test',
+                        tTest: 'Student t-testi',
+                        variance: 'Dispersiya hisoblash',
+                        stdDeviation: 'Standart og\'ish',
+                        medianCalc: 'Mediana hisoblash',
+                        modeCalc: 'Moda hisoblash',
+                        intervalSeries: 'Intervalli qator'
+                    },
+                    taskDescriptions: {
+                        sampleCharacteristics: 'Tanlama xarakteristikalarini hisoblang: o\'rtacha, dispersiya, standart og\'ish, mediana, moda, tebranish, minimum, maksimum.',
+                        empiricalDistribution: 'Berilgan tanlama uchun empirik taqsimot funksiyasini tuzing. Nisbiy va yig\'ilma chastotalarni toping.',
+                        histogram: 'Gistogramma qurish uchun nisbiy chastotalarni hisoblang. Har bir interval chastotasini aniqlang.',
+                        confidenceMean: 'Berilgan ishonch darajasida matematik kutilma uchun ishonch intervalini toping.',
+                        confidenceProportion: 'Berilgan ishonch darajasida ulush uchun ishonch intervalini toping.',
+                        hypothesisTesting: 'Umumiy o\'rtacha haqidagi gipotezani tekshiring. Statistikani hisoblang va xulosa qiling.',
+                        zTest: 'Ma\'lum dispersiyada o\'rtacha haqidagi gipotezani tekshirish uchun Z-testni bajaring.',
+                        tTest: 'Noma\'lum dispersiyada o\'rtacha haqidagi gipotezani tekshirish uchun Student t-testini bajaring.',
+                        variance: 'Berilgan tanlama uchun tuzatilgan dispersiyani hisoblang.',
+                        stdDeviation: 'Tanlama uchun standart og\'ishni hisoblang.',
+                        medianCalc: 'Berilgan tanlama medianasini toping.',
+                        modeCalc: 'Berilgan tanlama modasini toping.',
+                        intervalSeries: 'Intervalli variatsion qatorni tuzing va har bir interval uchun chastotalarni hisoblang.'
+                    }
+                },
+                en: {
+                    headerTitle: 'Statistics - Testing',
+                    sidebarTitle: 'Tasks',
+                    footerText: 'Mathematical Statistics Testing Platform',
+                    darkMode: '🌙',
+                    lightMode: '☀️',
+                    resetBtn: '↺',
+                    btnCheck: 'Check',
+                    btnSolution: 'Solution',
+                    btnNewData: 'New Data',
+                    btnShowAnswers: 'Show Answers',
+                    solutionTitle: 'Step-by-Step Solution',
+                    correct: 'Correct!',
+                    incorrect: 'Incorrect',
+                    scoreLabel: 'Score',
+                    timerLabel: 'Time',
+                    progressLabel: 'Progress',
+                    step: 'Step',
+                    formula: 'Formula',
+                    substitution: 'Substitution',
+                    result: 'Result',
+                    givenData: 'Given',
+                    answer: 'Answer',
+                    sample: 'Sample',
+                    sampleSize: 'Sample size (n)',
+                    mean: 'Mean',
+                    variance: 'Variance (corrected)',
+                    stdDev: 'Standard Deviation',
+                    median: 'Median',
+                    mode: 'Mode',
+                    range: 'Range',
+                    min: 'Minimum',
+                    max: 'Maximum',
+                    populationMean: 'Population Mean',
+                    sigma: 'Sigma (σ)',
+                    alpha: 'Significance Level (α)',
+                    confidence: 'Confidence Level',
+                    zValue: 'Z-statistic',
+                    tValue: 'T-statistic',
+                    criticalValue: 'Critical Value',
+                    conclusion: 'Conclusion',
+                    rejectH0: 'H₀ is rejected',
+                    acceptH0: 'H₀ is not rejected',
+                    lowerBound: 'Lower Bound',
+                    upperBound: 'Upper Bound',
+                    proportion: 'Proportion (p)',
+                    successes: 'Number of successes',
+                    trials: 'Number of trials',
+                    relFreq: 'Relative Frequency',
+                    cumFreq: 'Cumulative Frequency',
+                    value: 'Value',
+                    frequency: 'Frequency',
+                    interval: 'Interval',
+                    intervalFreq: 'Interval Frequency',
+                    tasks: {
+                        sampleCharacteristics: 'Sample Characteristics',
+                        empiricalDistribution: 'Empirical Distribution Function',
+                        histogram: 'Relative Frequency Histogram',
+                        confidenceMean: 'Confidence Interval for Mean',
+                        confidenceProportion: 'Confidence Interval for Proportion',
+                        hypothesisTesting: 'Hypothesis Testing',
+                        zTest: 'Z-test',
+                        tTest: 'Student\'s t-test',
+                        variance: 'Variance Calculation',
+                        stdDeviation: 'Standard Deviation',
+                        medianCalc: 'Median Calculation',
+                        modeCalc: 'Mode Calculation',
+                        intervalSeries: 'Interval Series'
+                    },
+                    taskDescriptions: {
+                        sampleCharacteristics: 'Calculate all main sample characteristics: mean, variance, standard deviation, median, mode, range, minimum, maximum.',
+                        empiricalDistribution: 'Build the empirical distribution function for the given sample. Find relative and cumulative frequencies.',
+                        histogram: 'Calculate relative frequencies for histogram construction. Determine the frequency for each interval.',
+                        confidenceMean: 'Find the confidence interval for the mathematical expectation at the given confidence level.',
+                        confidenceProportion: 'Find the confidence interval for the proportion at the given confidence level.',
+                        hypothesisTesting: 'Test the hypothesis about the population mean. Calculate the test statistic and make a conclusion.',
+                        zTest: 'Perform a Z-test to test the hypothesis about the mean with known population variance.',
+                        tTest: 'Perform Student\'s t-test to test the hypothesis about the mean with unknown variance.',
+                        variance: 'Calculate the corrected (sample) variance of the given sample.',
+                        stdDeviation: 'Calculate the standard deviation of the sample.',
+                        medianCalc: 'Find the median of the given sample.',
+                        modeCalc: 'Find the mode of the given sample.',
+                        intervalSeries: 'Build an interval variation series and calculate frequencies for each interval.'
+                    }
+                }
+            };
+        }
+
+        /**
+         * Get translated string for current language
+         * Supports dot notation for nested keys (e.g., 'tasks.zTest')
+         */
+        t(key) {
+            const keys = key.split('.');
+            let value = this.translations[this.currentLang];
+            for (const k of keys) {
+                if (value && typeof value === 'object') {
+                    value = value[k];
+                } else {
+                    return key; // Fallback to key if translation not found
+                }
+            }
+            return value || key;
+        }
+
+        /**
+         * Switch the current language and trigger UI re-render
+         */
+        setLanguage(lang) {
+            if (this.translations[lang]) {
+                this.currentLang = lang;
+            }
+        }
+    }
+
+    /* ============================================================
+       MathEngine Class - Statistical Calculations
+       ============================================================
+       Contains all statistical formulas used in the platform.
+       All methods round to 3 decimal places and handle edge cases.
+       Uses corrected (n-1) denominator for variance as required.
+    */
+    class MathEngine {
+        /**
+         * Calculate the sample mean (arithmetic average)
+         * Formula: x_bar = (1/n) * sum(xi)
+         */
+        sampleMean(data) {
+            if (!data || data.length === 0) return 0;
+            const sum = data.reduce((a, b) => a + b, 0);
+            return this.round(sum / data.length);
+        }
+
+        /**
+         * Calculate the corrected (sample) variance
+         * Formula: S^2 = sum((xi - x_bar)^2) / (n - 1)
+         * Uses Bessel's correction (n-1) for unbiased estimation
+         */
+        correctedVariance(data) {
+            if (!data || data.length < 2) return 0;
+            const mean = data.reduce((a, b) => a + b, 0) / data.length;
+            const sumSquaredDiff = data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0);
+            return this.round(sumSquaredDiff / (data.length - 1));
+        }
+
+        /**
+         * Calculate standard deviation (square root of corrected variance)
+         * Formula: S = sqrt(S^2)
+         */
+        standardDeviation(data) {
+            if (!data || data.length < 2) return 0;
+            const mean = data.reduce((a, b) => a + b, 0) / data.length;
+            const sumSquaredDiff = data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0);
+            const variance = sumSquaredDiff / (data.length - 1);
+            return this.round(Math.sqrt(variance));
+        }
+
+        /**
+         * Calculate the median (middle value of sorted data)
+         * For even n: average of two middle values
+         * For odd n: the middle value
+         */
+        median(data) {
+            if (!data || data.length === 0) return 0;
+            const sorted = [...data].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            if (sorted.length % 2 === 0) {
+                return this.round((sorted[mid - 1] + sorted[mid]) / 2);
+            }
+            return this.round(sorted[mid]);
+        }
+
+        /**
+         * Calculate the mode (most frequent value(s))
+         * Returns an array of modes if multiple values have the same highest frequency
+         */
+        mode(data) {
+            if (!data || data.length === 0) return [0];
+            const freq = {};
+            data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+            const maxFreq = Math.max(...Object.values(freq));
+            if (maxFreq === 1) return []; // No mode if all values appear once
+            const modes = Object.keys(freq)
+                .filter(k => freq[k] === maxFreq)
+                .map(Number)
+                .sort((a, b) => a - b);
+            return modes;
+        }
+
+        /**
+         * Calculate the range (max - min)
+         */
+        range(data) {
+            if (!data || data.length === 0) return 0;
+            return this.round(Math.max(...data) - Math.min(...data));
+        }
+
+        /**
+         * Calculate relative frequencies for each unique value
+         * Formula: w_i = n_i / n (frequency of value / total count)
+         */
+        relativeFrequencies(data) {
+            if (!data || data.length === 0) return {};
+            const freq = {};
+            data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+            const result = {};
+            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
+            sortedKeys.forEach(k => {
+                result[k] = this.round(freq[k] / data.length);
+            });
+            return result;
+        }
+
+        /**
+         * Calculate the empirical distribution function (EDF)
+         * F(x) = cumulative sum of relative frequencies up to and including x
+         */
+        empiricalDistributionFunction(data) {
+            if (!data || data.length === 0) return {};
+            const freq = {};
+            data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
+            const result = {};
+            let cumulative = 0;
+            sortedKeys.forEach(k => {
+                cumulative += freq[k] / data.length;
+                result[k] = this.round(cumulative);
+            });
+            return result;
+        }
+
+        /**
+         * Confidence interval for the population mean
+         * Formula: x_bar +/- t(alpha/2, n-1) * S / sqrt(n)
+         * Uses t-distribution quantile for small samples
+         */
+        confidenceIntervalMean(data, confidence) {
+            if (!data || data.length < 2) return { lower: 0, upper: 0 };
+            const n = data.length;
+            const mean = data.reduce((a, b) => a + b, 0) / n;
+            const s = Math.sqrt(data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0) / (n - 1));
+            const df = n - 1;
+            const t = this.tQuantile(confidence, df);
+            const margin = t * s / Math.sqrt(n);
+            return {
+                lower: this.round(mean - margin),
+                upper: this.round(mean + margin),
+                mean: this.round(mean),
+                margin: this.round(margin),
+                t: this.round(t),
+                s: this.round(s)
+            };
+        }
+
+        /**
+         * Confidence interval for a proportion
+         * Formula: p_hat +/- z(alpha/2) * sqrt(p_hat * (1 - p_hat) / n)
+         */
+        confidenceIntervalProportion(p, n, confidence) {
+            if (n <= 0 || p < 0 || p > 1) return { lower: 0, upper: 0 };
+            const z = this.normalQuantile(confidence);
+            const margin = z * Math.sqrt(p * (1 - p) / n);
+            return {
+                lower: this.round(Math.max(0, p - margin)),
+                upper: this.round(Math.min(1, p + margin)),
+                p: this.round(p),
+                margin: this.round(margin),
+                z: this.round(z)
+            };
+        }
+
+        /**
+         * Z-test for hypothesis testing (known population variance)
+         * Formula: z = (x_bar - mu_0) / (sigma / sqrt(n))
+         * H0: mu = mu_0
+         */
+        zTest(sampleMean, populationMean, sigma, n) {
+            if (sigma <= 0 || n <= 0) return { z: 0, reject: false };
+            const z = (sampleMean - populationMean) / (sigma / Math.sqrt(n));
+            return this.round(z);
+        }
+
+        /**
+         * Student's t-test for hypothesis testing (unknown population variance)
+         * Formula: t = (x_bar - mu_0) / (S / sqrt(n))
+         * H0: mu = mu_0
+         */
+        tTest(sampleMean, populationMean, s, n) {
+            if (s <= 0 || n <= 0) return 0;
+            const t = (sampleMean - populationMean) / (s / Math.sqrt(n));
+            return this.round(t);
+        }
+
+        /**
+         * Normal distribution quantile approximation
+         * Uses the Abramowitz and Stegun rational approximation (formula 26.2.23)
+         * for the inverse of the standard normal CDF.
+         * Input: confidence level (e.g., 0.95)
+         * Output: z value such that P(-z < Z < z) = confidence
+         */
+        normalQuantile(confidence) {
+            // We need z such that P(Z < z) = (1 + confidence) / 2
+            const p = (1 + confidence) / 2;
+
+            // Rational approximation for inverse normal CDF (Abramowitz & Stegun)
+            // For p > 0.5, use the transformation
+            const t = Math.sqrt(-2 * Math.log(1 - p));
+
+            // Coefficients for the rational approximation
+            const c0 = 2.515517;
+            const c1 = 0.802853;
+            const c2 = 0.010328;
+            const d1 = 1.432788;
+            const d2 = 0.189269;
+            const d3 = 0.001308;
+
+            const z = t - (c0 + c1 * t + c2 * t * t) / (1 + d1 * t + d2 * t * t + d3 * t * t * t);
+            return this.round(z);
+        }
+
+        /**
+         * t-distribution quantile approximation
+         * Uses a lookup table for degrees of freedom 1-30 at common confidence levels
+         * and an approximation formula for larger df.
+         * Input: confidence level and degrees of freedom
+         * Output: t value for two-tailed test
+         */
+        tQuantile(confidence, df) {
+            // Lookup table for t-distribution critical values (two-tailed)
+            // Format: tTable[df][confidence] = t-value
+            const tTable = {
+                1:  {0.90: 6.314, 0.95: 12.706, 0.99: 63.657},
+                2:  {0.90: 2.920, 0.95: 4.303, 0.99: 9.925},
+                3:  {0.90: 2.353, 0.95: 3.182, 0.99: 5.841},
+                4:  {0.90: 2.132, 0.95: 2.776, 0.99: 4.604},
+                5:  {0.90: 2.015, 0.95: 2.571, 0.99: 4.032},
+                6:  {0.90: 1.943, 0.95: 2.447, 0.99: 3.707},
+                7:  {0.90: 1.895, 0.95: 2.365, 0.99: 3.499},
+                8:  {0.90: 1.860, 0.95: 2.306, 0.99: 3.355},
+                9:  {0.90: 1.833, 0.95: 2.262, 0.99: 3.250},
+                10: {0.90: 1.812, 0.95: 2.228, 0.99: 3.169},
+                11: {0.90: 1.796, 0.95: 2.201, 0.99: 3.106},
+                12: {0.90: 1.782, 0.95: 2.179, 0.99: 3.055},
+                13: {0.90: 1.771, 0.95: 2.160, 0.99: 3.012},
+                14: {0.90: 1.761, 0.95: 2.145, 0.99: 2.977},
+                15: {0.90: 1.753, 0.95: 2.131, 0.99: 2.947},
+                16: {0.90: 1.746, 0.95: 2.120, 0.99: 2.921},
+                17: {0.90: 1.740, 0.95: 2.110, 0.99: 2.898},
+                18: {0.90: 1.734, 0.95: 2.101, 0.99: 2.878},
+                19: {0.90: 1.729, 0.95: 2.093, 0.99: 2.861},
+                20: {0.90: 1.725, 0.95: 2.086, 0.99: 2.845},
+                21: {0.90: 1.721, 0.95: 2.080, 0.99: 2.831},
+                22: {0.90: 1.717, 0.95: 2.074, 0.99: 2.819},
+                23: {0.90: 1.714, 0.95: 2.069, 0.99: 2.807},
+                24: {0.90: 1.711, 0.95: 2.064, 0.99: 2.797},
+                25: {0.90: 1.708, 0.95: 2.060, 0.99: 2.787},
+                26: {0.90: 1.706, 0.95: 2.056, 0.99: 2.779},
+                27: {0.90: 1.703, 0.95: 2.052, 0.99: 2.771},
+                28: {0.90: 1.701, 0.95: 2.048, 0.99: 2.763},
+                29: {0.90: 1.699, 0.95: 2.045, 0.99: 2.756},
+                30: {0.90: 1.697, 0.95: 2.042, 0.99: 2.750}
+            };
+
+            // Clamp df to valid range
+            const clampedDf = Math.min(Math.max(Math.round(df), 1), 30);
+
+            // Find the closest confidence level
+            const confLevels = [0.90, 0.95, 0.99];
+            let closestConf = confLevels[0];
+            let minDiff = Math.abs(confidence - confLevels[0]);
+            for (const cl of confLevels) {
+                const diff = Math.abs(confidence - cl);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestConf = cl;
+                }
+            }
+
+            if (clampedDf <= 30) {
+                return tTable[clampedDf][closestConf];
+            }
+
+            // For df > 30, approximate using normal distribution
+            return this.normalQuantile(confidence);
+        }
+
+        /**
+         * Round a number to 3 decimal places
+         * Handles edge cases (NaN, Infinity) by returning 0
+         */
+        round(value) {
+            if (!isFinite(value) || isNaN(value)) return 0;
+            return Math.round(value * 1000) / 1000;
+        }
+    }
+
+    /* ============================================================
+       DataGenerator Class - Random Data Generation
+       ============================================================
+       Generates realistic random data for each task type.
+       Uses appropriate ranges: sample sizes 8-30, values 1-100,
+       confidence levels 0.90/0.95/0.99.
+    */
+    class DataGenerator {
+        /**
+         * Generate an array of random integers within [min, max]
+         */
+        generateSampleData(n, min, max) {
+            const data = [];
+            for (let i = 0; i < n; i++) {
+                data.push(Math.floor(Math.random() * (max - min + 1)) + min);
+            }
+            return data;
+        }
+
+        /**
+         * Generate normally distributed values using Box-Muller transform
+         * Returns an array of n values with approximately the given mean and std
+         */
+        generateNormalSample(n, mean, std) {
+            const data = [];
+            for (let i = 0; i < n; i++) {
+                let u1 = Math.random();
+                let u2 = Math.random();
+                // Avoid log(0)
+                while (u1 === 0) u1 = Math.random();
+                const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                data.push(Math.round((mean + z * std) * 10) / 10);
+            }
+            return data;
+        }
+
+        /**
+         * Generate data for hypothesis testing task
+         */
+        generateHypothesisTestData() {
+            const n = this.randomInt(10, 25);
+            const populationMean = this.randomInt(40, 80);
+            const sigma = this.randomInt(3, 12);
+            const alpha = this.pickRandom([0.01, 0.05, 0.10]);
+            // Generate sample that may or may not differ from population mean
+            const shift = (Math.random() > 0.5) ? this.randomInt(-5, 5) : 0;
+            const sample = this.generateNormalSample(n, populationMean + shift, sigma);
+            return { sample, populationMean, sigma, alpha };
+        }
+
+        /**
+         * Generate data for confidence interval for mean
+         */
+        generateConfidenceIntervalMeanData() {
+            const n = this.randomInt(10, 25);
+            const confidence = this.pickRandom([0.90, 0.95, 0.99]);
+            const mean = this.randomInt(30, 70);
+            const std = this.randomInt(5, 15);
+            const sample = this.generateNormalSample(n, mean, std);
+            return { sample, confidence };
+        }
+
+        /**
+         * Generate data for confidence interval for proportion
+         */
+        generateConfidenceIntervalProportionData() {
+            const n = this.randomInt(50, 200);
+            const trueP = (this.randomInt(20, 80)) / 100;
+            const successes = Math.round(n * trueP);
+            const confidence = this.pickRandom([0.90, 0.95, 0.99]);
+            return { successes, n, confidence };
+        }
+
+        /**
+         * Generate data for empirical distribution function
+         * Uses repeated values to make the distribution interesting
+         */
+        generateEmpiricalDistributionData() {
+            const n = this.randomInt(15, 25);
+            const min = this.randomInt(1, 5);
+            const max = min + this.randomInt(5, 10);
+            const sample = this.generateSampleData(n, min, max);
+            return { sample };
+        }
+
+        /**
+         * Generate data for histogram (interval-based frequencies)
+         */
+        generateHistogramData() {
+            const n = this.randomInt(20, 30);
+            const sample = this.generateSampleData(n, 10, 80);
+            const intervalCount = this.randomInt(4, 7);
+            return { sample, intervalCount };
+        }
+
+        /**
+         * Generate data for sample characteristics
+         */
+        generateSampleCharacteristicsData() {
+            const n = this.randomInt(10, 20);
+            const sample = this.generateSampleData(n, 5, 50);
+            return { sample };
+        }
+
+        /**
+         * Generate data for Z-test
+         */
+        generateZTestData() {
+            const n = this.randomInt(15, 30);
+            const populationMean = this.randomInt(40, 80);
+            const sigma = this.randomInt(4, 12);
+            const alpha = this.pickRandom([0.01, 0.05, 0.10]);
+            const shift = (Math.random() > 0.5) ? this.randomInt(-4, 4) : 0;
+            const sample = this.generateNormalSample(n, populationMean + shift, sigma);
+            return { sample, populationMean, sigma, alpha };
+        }
+
+        /**
+         * Generate data for Student's t-test
+         */
+        generateTTestData() {
+            const n = this.randomInt(10, 25);
+            const populationMean = this.randomInt(30, 70);
+            const std = this.randomInt(5, 15);
+            const alpha = this.pickRandom([0.01, 0.05, 0.10]);
+            const shift = (Math.random() > 0.5) ? this.randomInt(-5, 5) : 0;
+            const sample = this.generateNormalSample(n, populationMean + shift, std);
+            return { sample, populationMean, alpha };
+        }
+
+        /**
+         * Generate data for variance calculation
+         */
+        generateVarianceData() {
+            const n = this.randomInt(8, 18);
+            const sample = this.generateSampleData(n, 10, 60);
+            return { sample };
+        }
+
+        /**
+         * Generate data for standard deviation calculation
+         */
+        generateStdDevData() {
+            const n = this.randomInt(8, 18);
+            const sample = this.generateSampleData(n, 10, 60);
+            return { sample };
+        }
+
+        /**
+         * Generate data for median calculation
+         */
+        generateMedianData() {
+            const n = this.randomInt(9, 20);
+            const sample = this.generateSampleData(n, 5, 50);
+            return { sample };
+        }
+
+        /**
+         * Generate data for mode calculation
+         * Ensures there is a clear mode by repeating some values
+         */
+        generateModeData() {
+            const n = this.randomInt(12, 20);
+            const base = this.generateSampleData(n - 4, 5, 30);
+            // Add repeated values to ensure a clear mode
+            const modeValue = this.pickRandom(base);
+            for (let i = 0; i < 4; i++) {
+                base.push(modeValue);
+            }
+            // Shuffle the array
+            for (let i = base.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [base[i], base[j]] = [base[j], base[i]];
+            }
+            return { sample: base };
+        }
+
+        /**
+         * Generate data for interval series
+         */
+        generateIntervalSeriesData() {
+            const n = this.randomInt(20, 30);
+            const sample = this.generateSampleData(n, 10, 90);
+            const intervalCount = this.randomInt(4, 6);
+            return { sample, intervalCount };
+        }
+
+        // Helper: random integer in [min, max]
+        randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Helper: pick random element from array
+        pickRandom(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+    }
+
+    /* ============================================================
+       TaskRenderer Class - UI Rendering for Each Task Type
+       ============================================================
+       Renders the appropriate HTML for each task type including:
+       data tables, input fields, buttons, and solution areas.
+    */
+    class TaskRenderer {
+        constructor(i18n, mathEngine) {
+            this.i18n = i18n;
+            this.math = mathEngine;
+        }
+
+        /**
+         * Main render method - dispatches to specific task renderers
+         */
+        renderTask(taskType, data) {
+            switch (taskType) {
+                case 'sampleCharacteristics': return this.renderSampleCharacteristics(data);
+                case 'empiricalDistribution': return this.renderEmpiricalDistribution(data);
+                case 'histogram': return this.renderHistogram(data);
+                case 'confidenceMean': return this.renderConfidenceMean(data);
+                case 'confidenceProportion': return this.renderConfidenceProportion(data);
+                case 'hypothesisTesting': return this.renderHypothesisTesting(data);
+                case 'zTest': return this.renderZTest(data);
+                case 'tTest': return this.renderTTest(data);
+                case 'variance': return this.renderVariance(data);
+                case 'stdDeviation': return this.renderStdDeviation(data);
+                case 'medianCalc': return this.renderMedianCalc(data);
+                case 'modeCalc': return this.renderModeCalc(data);
+                case 'intervalSeries': return this.renderIntervalSeries(data);
+                default: return '<p>Unknown task type</p>';
+            }
+        }
+
+        /**
+         * Render a styled data table
+         */
+        renderTable(headers, rows) {
+            let html = '<table class="data-table"><thead><tr>';
+            headers.forEach(h => { html += `<th>${h}</th>`; });
+            html += '</tr></thead><tbody>';
+            rows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => { html += `<td>${cell}</td>`; });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+
+        /**
+         * Render input fields with labels
+         */
+        renderInputFields(fields) {
+            let html = '<div class="input-group">';
+            fields.forEach(field => {
+                html += `<div class="input-field">
+                    <label class="input-field__label">${field.label}</label>
+                    <input type="text" class="input-field__input" id="input-${field.id}" 
+                           placeholder="${field.placeholder || ''}" data-answer="${field.answer}">
+                </div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        /**
+         * Render action buttons (Check, Solution, New Data, Show Answers)
+         */
+        renderButtons() {
+            return `<div class="btn-group">
+                <button class="btn btn--primary" onclick="app.checkAnswers()">
+                    ${this.i18n.t('btnCheck')}
+                </button>
+                <button class="btn btn--warning" onclick="app.showSolution()">
+                    ${this.i18n.t('btnSolution')}
+                </button>
+                <button class="btn btn--success" onclick="app.showAnswers()">
+                    ${this.i18n.t('btnShowAnswers')}
+                </button>
+                <button class="btn btn--danger" onclick="app.generateNewData()">
+                    ${this.i18n.t('btnNewData')}
+                </button>
+            </div>`;
+        }
+
+        /**
+         * Render the sample data display
+         */
+        renderSampleDisplay(sample) {
+            const i18n = this.i18n;
+            return `<div class="task-card__description">
+                <strong>${i18n.t('sample')}:</strong> ${sample.join(', ')}<br>
+                <strong>${i18n.t('sampleSize')}:</strong> ${sample.length}
+            </div>`;
+        }
+
+        // ============================================================
+        // Individual Task Renderers
+        // ============================================================
+
+        renderSampleCharacteristics(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const mean = this.math.sampleMean(sample);
+            const variance = this.math.correctedVariance(sample);
+            const stdDev = this.math.standardDeviation(sample);
+            const med = this.math.median(sample);
+            const modes = this.math.mode(sample);
+            const range = this.math.range(sample);
+            const min = Math.min(...sample);
+            const max = Math.max(...sample);
+
+            const fields = [
+                { id: 'mean', label: i18n.t('mean'), answer: mean },
+                { id: 'variance', label: i18n.t('variance'), answer: variance },
+                { id: 'stdDev', label: i18n.t('stdDev'), answer: stdDev },
+                { id: 'median', label: i18n.t('median'), answer: med },
+                { id: 'mode', label: i18n.t('mode'), answer: modes.length > 0 ? modes.join(', ') : '-' },
+                { id: 'range', label: i18n.t('range'), answer: range },
+                { id: 'min', label: i18n.t('min'), answer: min },
+                { id: 'max', label: i18n.t('max'), answer: max }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.sampleCharacteristics')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.sampleCharacteristics')}</p>
+                ${this.renderSampleDisplay(sample)}
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderEmpiricalDistribution(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const relFreq = this.math.relativeFrequencies(sample);
+            const edf = this.math.empiricalDistributionFunction(sample);
+            const sortedKeys = Object.keys(relFreq).map(Number).sort((a, b) => a - b);
+
+            // Build answer table for reference
+            const headers = [i18n.t('value'), i18n.t('frequency'), i18n.t('relFreq'), i18n.t('cumFreq')];
+            const freq = {};
+            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+            const rows = sortedKeys.map(k => [k, freq[k], relFreq[k], edf[k]]);
+
+            // Create input fields for relative frequencies
+            const fields = sortedKeys.map(k => ({
+                id: `relfreq-${k}`,
+                label: `${i18n.t('relFreq')} (x=${k})`,
+                answer: relFreq[k]
+            }));
+
+            // Add cumulative frequency fields
+            const cumFields = sortedKeys.map(k => ({
+                id: `cumfreq-${k}`,
+                label: `F(${k})`,
+                answer: edf[k]
+            }));
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.empiricalDistribution')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.empiricalDistribution')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('relFreq')}</h3>
+                ${this.renderInputFields(fields)}
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('cumFreq')}</h3>
+                ${this.renderInputFields(cumFields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderHistogram(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const intervalCount = data.intervalCount;
+            const min = Math.min(...sample);
+            const max = Math.max(...sample);
+            const width = this.math.round((max - min) / intervalCount);
+            
+            // Build intervals
+            const intervals = [];
+            for (let i = 0; i < intervalCount; i++) {
+                const lower = this.math.round(min + i * width);
+                const upper = this.math.round(min + (i + 1) * width);
+                let count = 0;
+                sample.forEach(x => {
+                    if (i === intervalCount - 1) {
+                        if (x >= lower && x <= upper) count++;
+                    } else {
+                        if (x >= lower && x < upper) count++;
+                    }
+                });
+                intervals.push({
+                    lower, upper, count,
+                    relFreq: this.math.round(count / sample.length)
+                });
+            }
+
+            const fields = intervals.map((intv, idx) => ({
+                id: `hist-${idx}`,
+                label: `[${intv.lower}; ${intv.upper}${idx === intervals.length - 1 ? ']' : ')'}`,
+                answer: intv.relFreq
+            }));
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.histogram')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.histogram')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    <strong>${i18n.t('interval')}:</strong> ${intervalCount} | 
+                    <strong>Min:</strong> ${min} | <strong>Max:</strong> ${max} |
+                    <strong>h:</strong> ${width}
+                </p>
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('relFreq')}</h3>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderConfidenceMean(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const confidence = data.confidence;
+            const result = this.math.confidenceIntervalMean(sample, confidence);
+
+            const fields = [
+                { id: 'ci-mean', label: i18n.t('mean'), answer: result.mean },
+                { id: 'ci-lower', label: i18n.t('lowerBound'), answer: result.lower },
+                { id: 'ci-upper', label: i18n.t('upperBound'), answer: result.upper }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.confidenceMean')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.confidenceMean')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    <strong>${i18n.t('confidence')}:</strong> ${confidence}
+                </p>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderConfidenceProportion(data) {
+            const i18n = this.i18n;
+            const p = this.math.round(data.successes / data.n);
+            const confidence = data.confidence;
+            const result = this.math.confidenceIntervalProportion(p, data.n, confidence);
+
+            const fields = [
+                { id: 'cp-p', label: i18n.t('proportion'), answer: result.p },
+                { id: 'cp-lower', label: i18n.t('lowerBound'), answer: result.lower },
+                { id: 'cp-upper', label: i18n.t('upperBound'), answer: result.upper }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.confidenceProportion')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.confidenceProportion')}</p>
+                <div class="task-card__description">
+                    <strong>${i18n.t('successes')}:</strong> ${data.successes}<br>
+                    <strong>${i18n.t('trials')}:</strong> ${data.n}<br>
+                    <strong>${i18n.t('confidence')}:</strong> ${confidence}
+                </div>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderHypothesisTesting(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const populationMean = data.populationMean;
+            const sigma = data.sigma;
+            const alpha = data.alpha;
+            const sampleMean = this.math.sampleMean(sample);
+            const n = sample.length;
+            const zStat = this.math.zTest(sampleMean, populationMean, sigma, n);
+            const confidence = 1 - alpha;
+            const zCritical = this.math.normalQuantile(confidence);
+            const reject = Math.abs(zStat) > zCritical;
+
+            const fields = [
+                { id: 'ht-mean', label: i18n.t('mean'), answer: sampleMean },
+                { id: 'ht-z', label: i18n.t('zValue'), answer: zStat },
+                { id: 'ht-zcrit', label: i18n.t('criticalValue'), answer: zCritical },
+                { id: 'ht-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.hypothesisTesting')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.hypothesisTesting')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    <strong>H₀: μ = ${populationMean}</strong><br>
+                    <strong>${i18n.t('sigma')}:</strong> ${sigma} | 
+                    <strong>${i18n.t('alpha')}:</strong> ${alpha}
+                </p>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderZTest(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const populationMean = data.populationMean;
+            const sigma = data.sigma;
+            const alpha = data.alpha;
+            const sampleMean = this.math.sampleMean(sample);
+            const n = sample.length;
+            const zStat = this.math.zTest(sampleMean, populationMean, sigma, n);
+            const confidence = 1 - alpha;
+            const zCritical = this.math.normalQuantile(confidence);
+            const reject = Math.abs(zStat) > zCritical;
+
+            const fields = [
+                { id: 'zt-mean', label: i18n.t('mean'), answer: sampleMean },
+                { id: 'zt-z', label: i18n.t('zValue'), answer: zStat },
+                { id: 'zt-zcrit', label: i18n.t('criticalValue'), answer: zCritical },
+                { id: 'zt-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.zTest')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.zTest')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    <strong>H₀: μ = ${populationMean}</strong><br>
+                    <strong>${i18n.t('sigma')}:</strong> ${sigma} | 
+                    <strong>${i18n.t('alpha')}:</strong> ${alpha}
+                </p>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderTTest(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const populationMean = data.populationMean;
+            const alpha = data.alpha;
+            const sampleMean = this.math.sampleMean(sample);
+            const s = this.math.standardDeviation(sample);
+            const n = sample.length;
+            const tStat = this.math.tTest(sampleMean, populationMean, s, n);
+            const confidence = 1 - alpha;
+            const df = n - 1;
+            const tCritical = this.math.tQuantile(confidence, df);
+            const reject = Math.abs(tStat) > tCritical;
+
+            const fields = [
+                { id: 'tt-mean', label: i18n.t('mean'), answer: sampleMean },
+                { id: 'tt-s', label: i18n.t('stdDev'), answer: s },
+                { id: 'tt-t', label: i18n.t('tValue'), answer: tStat },
+                { id: 'tt-tcrit', label: i18n.t('criticalValue'), answer: tCritical },
+                { id: 'tt-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.tTest')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.tTest')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    <strong>H₀: μ = ${populationMean}</strong><br>
+                    <strong>${i18n.t('alpha')}:</strong> ${alpha} | 
+                    <strong>df:</strong> ${df}
+                </p>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderVariance(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const variance = this.math.correctedVariance(sample);
+            const mean = this.math.sampleMean(sample);
+
+            const fields = [
+                { id: 'var-mean', label: i18n.t('mean'), answer: mean },
+                { id: 'var-variance', label: i18n.t('variance'), answer: variance }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.variance')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.variance')}</p>
+                ${this.renderSampleDisplay(sample)}
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderStdDeviation(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const stdDev = this.math.standardDeviation(sample);
+            const variance = this.math.correctedVariance(sample);
+            const mean = this.math.sampleMean(sample);
+
+            const fields = [
+                { id: 'sd-mean', label: i18n.t('mean'), answer: mean },
+                { id: 'sd-variance', label: i18n.t('variance'), answer: variance },
+                { id: 'sd-stddev', label: i18n.t('stdDev'), answer: stdDev }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.stdDeviation')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.stdDeviation')}</p>
+                ${this.renderSampleDisplay(sample)}
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderMedianCalc(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const med = this.math.median(sample);
+            const sorted = [...sample].sort((a, b) => a - b);
+
+            const fields = [
+                { id: 'med-median', label: i18n.t('median'), answer: med }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.medianCalc')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.medianCalc')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <p style="color: var(--text-muted); font-size: var(--font-size-sm); margin-bottom: 12px;">
+                    Sorted: ${sorted.join(', ')}
+                </p>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderModeCalc(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const modes = this.math.mode(sample);
+            const modeStr = modes.length > 0 ? modes.join(', ') : '-';
+
+            // Show frequency table
+            const freq = {};
+            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
+            const headers = [i18n.t('value'), i18n.t('frequency')];
+            const rows = sortedKeys.map(k => [k, freq[k]]);
+
+            const fields = [
+                { id: 'mode-mode', label: i18n.t('mode'), answer: modeStr }
+            ];
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.modeCalc')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.modeCalc')}</p>
+                ${this.renderSampleDisplay(sample)}
+                ${this.renderTable(headers, rows)}
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+
+        renderIntervalSeries(data) {
+            const i18n = this.i18n;
+            const sample = data.sample;
+            const intervalCount = data.intervalCount;
+            const min = Math.min(...sample);
+            const max = Math.max(...sample);
+            const width = this.math.round((max - min) / intervalCount);
+
+            // Build intervals
+            const intervals = [];
+            for (let i = 0; i < intervalCount; i++) {
+                const lower = this.math.round(min + i * width);
+                const upper = this.math.round(min + (i + 1) * width);
+                let count = 0;
+                sample.forEach(x => {
+                    if (i === intervalCount - 1) {
+                        if (x >= lower && x <= upper) count++;
+                    } else {
+                        if (x >= lower && x < upper) count++;
+                    }
+                });
+                intervals.push({ lower, upper, count });
+            }
+
+            const fields = intervals.map((intv, idx) => ({
+                id: `int-${idx}`,
+                label: `[${intv.lower}; ${intv.upper}${idx === intervals.length - 1 ? ']' : ')'}`,
+                answer: intv.count
+            }));
+
+            return `<div class="task-card">
+                <h2 class="task-card__title">${i18n.t('tasks.intervalSeries')}</h2>
+                <p class="task-card__description">${i18n.t('taskDescriptions.intervalSeries')}</p>
+                ${this.renderSampleDisplay(sample)}
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    <strong>${i18n.t('interval')}:</strong> ${intervalCount} | 
+                    <strong>Min:</strong> ${min} | <strong>Max:</strong> ${max} |
+                    <strong>h:</strong> ${width}
+                </p>
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('intervalFreq')}</h3>
+                ${this.renderInputFields(fields)}
+                ${this.renderButtons()}
+                <div id="solution-area"></div>
+            </div>`;
+        }
+    }
+
+    /* ============================================================
+       AnswerChecker Class - Validates User Answers
+       ============================================================
+       Compares user input with correct answers using configurable
+       tolerance. Handles numeric and text answers.
+    */
+    class AnswerChecker {
+        constructor(mathEngine) {
+            this.math = mathEngine;
+        }
+
+        /**
+         * Check a single answer with tolerance
+         * For numeric answers: |userAnswer - correctAnswer| <= tolerance
+         * For text answers: case-insensitive comparison
+         */
+        checkAnswer(userAnswer, correctAnswer, tolerance = 0.01) {
+            // Clean user input
+            const userStr = String(userAnswer).trim().replace(',', '.');
+            const correctStr = String(correctAnswer).trim();
+
+            // Try numeric comparison first
+            const userNum = parseFloat(userStr);
+            const correctNum = parseFloat(correctStr);
+
+            if (!isNaN(userNum) && !isNaN(correctNum)) {
+                return Math.abs(userNum - correctNum) <= tolerance;
+            }
+
+            // Text comparison (for mode with multiple values, conclusions, etc.)
+            return userStr.toLowerCase() === correctStr.toLowerCase();
+        }
+
+        /**
+         * Check all answer fields in the current task
+         * Returns array of {id, correct, userAnswer, expectedAnswer}
+         */
+        checkAllAnswers() {
+            const inputs = document.querySelectorAll('.input-field__input');
+            const results = [];
+            inputs.forEach(input => {
+                const userAnswer = input.value;
+                const correctAnswer = input.getAttribute('data-answer');
+                const isCorrect = this.checkAnswer(userAnswer, correctAnswer);
+                results.push({
+                    id: input.id,
+                    correct: isCorrect,
+                    userAnswer: userAnswer,
+                    expectedAnswer: correctAnswer
+                });
+            });
+            return results;
+        }
+
+        /**
+         * Apply green/red highlighting to inputs based on results
+         */
+        highlightResults(results) {
+            results.forEach(r => {
+                const input = document.getElementById(r.id);
+                if (input) {
+                    input.classList.remove('input-field__input--correct', 'input-field__input--incorrect');
+                    if (r.userAnswer.trim() === '') return; // Skip empty
+                    if (r.correct) {
+                        input.classList.add('input-field__input--correct');
+                    } else {
+                        input.classList.add('input-field__input--incorrect');
+                    }
+                }
+            });
+        }
+
+        /**
+         * Calculate score percentage from results
+         */
+        calculateScore(results) {
+            const answered = results.filter(r => r.userAnswer.trim() !== '');
+            if (answered.length === 0) return 0;
+            const correct = answered.filter(r => r.correct).length;
+            return { correct, total: answered.length, percentage: Math.round(correct / answered.length * 100) };
+        }
+    }
+
+    /* ============================================================
+       SolutionDisplay Class - Step-by-Step Solutions
+       ============================================================
+       Generates detailed mathematical solutions showing:
+       - Formula description
+       - The formula itself
+       - Number substitution
+       - Intermediate calculations
+       - Final result
+    */
+    class SolutionDisplay {
+        constructor(i18n, mathEngine) {
+            this.i18n = i18n;
+            this.math = mathEngine;
+        }
+
+        /**
+         * Generate solution steps for a given task type and data
+         * Returns array of step objects
+         */
+        generateSolution(taskType, data) {
+            switch (taskType) {
+                case 'sampleCharacteristics': return this.solveSampleCharacteristics(data);
+                case 'empiricalDistribution': return this.solveEmpiricalDistribution(data);
+                case 'histogram': return this.solveHistogram(data);
+                case 'confidenceMean': return this.solveConfidenceMean(data);
+                case 'confidenceProportion': return this.solveConfidenceProportion(data);
+                case 'hypothesisTesting': return this.solveHypothesisTesting(data);
+                case 'zTest': return this.solveZTest(data);
+                case 'tTest': return this.solveTTest(data);
+                case 'variance': return this.solveVariance(data);
+                case 'stdDeviation': return this.solveStdDeviation(data);
+                case 'medianCalc': return this.solveMedian(data);
+                case 'modeCalc': return this.solveMode(data);
+                case 'intervalSeries': return this.solveIntervalSeries(data);
+                default: return [];
+            }
+        }
+
+        /**
+         * Render solution steps as HTML
+         */
+        renderSolution(steps) {
+            const i18n = this.i18n;
+            let html = `<div class="solution">
+                <h3 class="solution__title">${i18n.t('solutionTitle')}</h3>`;
+            steps.forEach((step, idx) => {
+                html += `<div class="solution__step">
+                    <div class="solution__step-title">${i18n.t('step')} ${idx + 1}: ${step.description}</div>
+                    ${step.formula ? `<div class="solution__step-formula">${step.formula}</div>` : ''}
+                    ${step.substitution ? `<div class="solution__step-formula">${step.substitution}</div>` : ''}
+                    <div class="solution__step-result">${i18n.t('result')}: ${step.result}</div>
+                </div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        // ============================================================
+        // Solution Generators for Each Task Type
+        // ============================================================
+
+        solveSampleCharacteristics(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const sum = sample.reduce((a, b) => a + b, 0);
+            const mean = this.math.sampleMean(sample);
+            const variance = this.math.correctedVariance(sample);
+            const stdDev = this.math.standardDeviation(sample);
+            const med = this.math.median(sample);
+            const modes = this.math.mode(sample);
+            const range = this.math.range(sample);
+
+            return [
+                {
+                    description: this.i18n.t('mean'),
+                    formula: 'x\u0304 = (1/n) * \u03A3x\u1d62',
+                    substitution: `x\u0304 = (${sum}) / ${n}`,
+                    result: mean
+                },
+                {
+                    description: this.i18n.t('variance'),
+                    formula: 'S\u00B2 = \u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1)',
+                    substitution: `S\u00B2 = \u03A3(x\u1d62 - ${mean})\u00B2 / (${n}-1)`,
+                    result: variance
+                },
+                {
+                    description: this.i18n.t('stdDev'),
+                    formula: 'S = \u221A(S\u00B2)',
+                    substitution: `S = \u221A(${variance})`,
+                    result: stdDev
+                },
+                {
+                    description: this.i18n.t('median'),
+                    formula: 'Me = x[(n+1)/2] for odd n, or (x[n/2] + x[n/2+1])/2 for even n',
+                    substitution: `n = ${n} (${n % 2 === 0 ? 'even' : 'odd'})`,
+                    result: med
+                },
+                {
+                    description: this.i18n.t('mode'),
+                    formula: 'Mo = value(s) with highest frequency',
+                    substitution: '',
+                    result: modes.length > 0 ? modes.join(', ') : '-'
+                },
+                {
+                    description: this.i18n.t('range'),
+                    formula: 'R = x_max - x_min',
+                    substitution: `R = ${Math.max(...sample)} - ${Math.min(...sample)}`,
+                    result: range
+                }
+            ];
+        }
+
+        solveEmpiricalDistribution(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const freq = {};
+            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
+            const relFreq = this.math.relativeFrequencies(sample);
+            const edf = this.math.empiricalDistributionFunction(sample);
+
+            const steps = [{
+                description: this.i18n.t('frequency'),
+                formula: 'n\u1d62 = count of x\u1d62 in sample',
+                substitution: sortedKeys.map(k => `n(${k}) = ${freq[k]}`).join(', '),
+                result: `n = ${n}`
+            }];
+
+            steps.push({
+                description: this.i18n.t('relFreq'),
+                formula: 'w\u1d62 = n\u1d62 / n',
+                substitution: sortedKeys.map(k => `w(${k}) = ${freq[k]}/${n}`).join(', '),
+                result: sortedKeys.map(k => `w(${k}) = ${relFreq[k]}`).join(', ')
+            });
+
+            steps.push({
+                description: this.i18n.t('cumFreq'),
+                formula: 'F(x) = \u03A3 w\u1d62 for x\u1d62 \u2264 x',
+                substitution: '',
+                result: sortedKeys.map(k => `F(${k}) = ${edf[k]}`).join(', ')
+            });
+
+            return steps;
+        }
+
+        solveHistogram(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const intervalCount = data.intervalCount;
+            const min = Math.min(...sample);
+            const max = Math.max(...sample);
+            const width = this.math.round((max - min) / intervalCount);
+
+            const steps = [{
+                description: 'Interval width',
+                formula: 'h = (x_max - x_min) / k',
+                substitution: `h = (${max} - ${min}) / ${intervalCount}`,
+                result: width
+            }];
+
+            for (let i = 0; i < intervalCount; i++) {
+                const lower = this.math.round(min + i * width);
+                const upper = this.math.round(min + (i + 1) * width);
+                let count = 0;
+                sample.forEach(x => {
+                    if (i === intervalCount - 1) {
+                        if (x >= lower && x <= upper) count++;
+                    } else {
+                        if (x >= lower && x < upper) count++;
+                    }
+                });
+                const relFreq = this.math.round(count / n);
+                steps.push({
+                    description: `[${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
+                    formula: `w = n\u1d62 / n`,
+                    substitution: `w = ${count} / ${n}`,
+                    result: relFreq
+                });
+            }
+
+            return steps;
+        }
+
+        solveConfidenceMean(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const confidence = data.confidence;
+            const result = this.math.confidenceIntervalMean(sample, confidence);
+
+            return [
+                {
+                    description: this.i18n.t('mean'),
+                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
+                    substitution: `x\u0304 = ${sample.reduce((a, b) => a + b, 0)} / ${n}`,
+                    result: result.mean
+                },
+                {
+                    description: this.i18n.t('stdDev'),
+                    formula: 'S = \u221A(\u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1))',
+                    substitution: `n = ${n}, df = ${n - 1}`,
+                    result: result.s
+                },
+                {
+                    description: 't-quantile',
+                    formula: `t(\u03B1/2, df) for confidence = ${confidence}`,
+                    substitution: `t(${this.math.round((1 - confidence) / 2)}, ${n - 1})`,
+                    result: result.t
+                },
+                {
+                    description: 'Margin of error',
+                    formula: '\u0394 = t * S / \u221An',
+                    substitution: `\u0394 = ${result.t} * ${result.s} / \u221A${n}`,
+                    result: result.margin
+                },
+                {
+                    description: this.i18n.t('answer'),
+                    formula: `(x\u0304 - \u0394; x\u0304 + \u0394)`,
+                    substitution: `(${result.mean} - ${result.margin}; ${result.mean} + ${result.margin})`,
+                    result: `(${result.lower}; ${result.upper})`
+                }
+            ];
+        }
+
+        solveConfidenceProportion(data) {
+            const p = this.math.round(data.successes / data.n);
+            const confidence = data.confidence;
+            const result = this.math.confidenceIntervalProportion(p, data.n, confidence);
+
+            return [
+                {
+                    description: this.i18n.t('proportion'),
+                    formula: 'p\u0302 = m / n',
+                    substitution: `p\u0302 = ${data.successes} / ${data.n}`,
+                    result: result.p
+                },
+                {
+                    description: 'Z-quantile',
+                    formula: `z(\u03B1/2) for confidence = ${confidence}`,
+                    substitution: '',
+                    result: result.z
+                },
+                {
+                    description: 'Margin of error',
+                    formula: '\u0394 = z * \u221A(p\u0302(1-p\u0302)/n)',
+                    substitution: `\u0394 = ${result.z} * \u221A(${result.p}*${this.math.round(1 - result.p)}/${data.n})`,
+                    result: result.margin
+                },
+                {
+                    description: this.i18n.t('answer'),
+                    formula: '(p\u0302 - \u0394; p\u0302 + \u0394)',
+                    substitution: `(${result.p} - ${result.margin}; ${result.p} + ${result.margin})`,
+                    result: `(${result.lower}; ${result.upper})`
+                }
+            ];
+        }
+
+        solveHypothesisTesting(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const populationMean = data.populationMean;
+            const sigma = data.sigma;
+            const alpha = data.alpha;
+            const sampleMean = this.math.sampleMean(sample);
+            const zStat = this.math.zTest(sampleMean, populationMean, sigma, n);
+            const confidence = 1 - alpha;
+            const zCritical = this.math.normalQuantile(confidence);
+            const reject = Math.abs(zStat) > zCritical;
+
+            return [
+                {
+                    description: this.i18n.t('mean'),
+                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
+                    substitution: `n = ${n}`,
+                    result: sampleMean
+                },
+                {
+                    description: this.i18n.t('zValue'),
+                    formula: 'z = (x\u0304 - \u03BC\u2080) / (\u03C3 / \u221An)',
+                    substitution: `z = (${sampleMean} - ${populationMean}) / (${sigma} / \u221A${n})`,
+                    result: zStat
+                },
+                {
+                    description: this.i18n.t('criticalValue'),
+                    formula: `z_crit for \u03B1 = ${alpha} (two-tailed)`,
+                    substitution: `P(|Z| > z_crit) = ${alpha}`,
+                    result: zCritical
+                },
+                {
+                    description: this.i18n.t('conclusion'),
+                    formula: `|z| ${Math.abs(zStat) > zCritical ? '>' : '\u2264'} z_crit`,
+                    substitution: `|${zStat}| = ${this.math.round(Math.abs(zStat))} vs ${zCritical}`,
+                    result: reject ? this.i18n.t('rejectH0') : this.i18n.t('acceptH0')
+                }
+            ];
+        }
+
+        solveZTest(data) {
+            // Same as hypothesis testing since both use Z-test
+            return this.solveHypothesisTesting(data);
+        }
+
+        solveTTest(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const populationMean = data.populationMean;
+            const alpha = data.alpha;
+            const sampleMean = this.math.sampleMean(sample);
+            const s = this.math.standardDeviation(sample);
+            const df = n - 1;
+            const tStat = this.math.tTest(sampleMean, populationMean, s, n);
+            const confidence = 1 - alpha;
+            const tCritical = this.math.tQuantile(confidence, df);
+            const reject = Math.abs(tStat) > tCritical;
+
+            return [
+                {
+                    description: this.i18n.t('mean'),
+                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
+                    substitution: `n = ${n}`,
+                    result: sampleMean
+                },
+                {
+                    description: this.i18n.t('stdDev'),
+                    formula: 'S = \u221A(\u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1))',
+                    substitution: `df = ${df}`,
+                    result: s
+                },
+                {
+                    description: this.i18n.t('tValue'),
+                    formula: 't = (x\u0304 - \u03BC\u2080) / (S / \u221An)',
+                    substitution: `t = (${sampleMean} - ${populationMean}) / (${s} / \u221A${n})`,
+                    result: tStat
+                },
+                {
+                    description: this.i18n.t('criticalValue'),
+                    formula: `t_crit(${alpha}, ${df}) (two-tailed)`,
+                    substitution: `\u03B1 = ${alpha}, df = ${df}`,
+                    result: tCritical
+                },
+                {
+                    description: this.i18n.t('conclusion'),
+                    formula: `|t| ${Math.abs(tStat) > tCritical ? '>' : '\u2264'} t_crit`,
+                    substitution: `|${tStat}| = ${this.math.round(Math.abs(tStat))} vs ${tCritical}`,
+                    result: reject ? this.i18n.t('rejectH0') : this.i18n.t('acceptH0')
+                }
+            ];
+        }
+
+        solveVariance(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const mean = this.math.sampleMean(sample);
+            const variance = this.math.correctedVariance(sample);
+            const sumSqDiff = this.math.round(sample.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0));
+
+            return [
+                {
+                    description: this.i18n.t('mean'),
+                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
+                    substitution: `x\u0304 = ${sample.reduce((a, b) => a + b, 0)} / ${n}`,
+                    result: mean
+                },
+                {
+                    description: '\u03A3(x\u1d62 - x\u0304)\u00B2',
+                    formula: 'Sum of squared deviations',
+                    substitution: `\u03A3(x\u1d62 - ${mean})\u00B2`,
+                    result: sumSqDiff
+                },
+                {
+                    description: this.i18n.t('variance'),
+                    formula: 'S\u00B2 = \u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1)',
+                    substitution: `S\u00B2 = ${sumSqDiff} / (${n} - 1) = ${sumSqDiff} / ${n - 1}`,
+                    result: variance
+                }
+            ];
+        }
+
+        solveStdDeviation(data) {
+            const steps = this.solveVariance(data);
+            const stdDev = this.math.standardDeviation(data.sample);
+            const variance = this.math.correctedVariance(data.sample);
+            steps.push({
+                description: this.i18n.t('stdDev'),
+                formula: 'S = \u221A(S\u00B2)',
+                substitution: `S = \u221A(${variance})`,
+                result: stdDev
+            });
+            return steps;
+        }
+
+        solveMedian(data) {
+            const sample = data.sample;
+            const sorted = [...sample].sort((a, b) => a - b);
+            const n = sorted.length;
+            const med = this.math.median(sample);
+
+            const steps = [{
+                description: 'Sort the sample',
+                formula: 'Arrange values in ascending order',
+                substitution: sorted.join(', '),
+                result: `n = ${n}`
+            }];
+
+            if (n % 2 === 0) {
+                const mid1 = sorted[n / 2 - 1];
+                const mid2 = sorted[n / 2];
+                steps.push({
+                    description: this.i18n.t('median'),
+                    formula: 'Me = (x[n/2] + x[n/2+1]) / 2',
+                    substitution: `Me = (${mid1} + ${mid2}) / 2`,
+                    result: med
+                });
+            } else {
+                const midIdx = Math.floor(n / 2);
+                steps.push({
+                    description: this.i18n.t('median'),
+                    formula: 'Me = x[(n+1)/2]',
+                    substitution: `Me = x[${midIdx + 1}] = ${sorted[midIdx]}`,
+                    result: med
+                });
+            }
+            return steps;
+        }
+
+        solveMode(data) {
+            const sample = data.sample;
+            const freq = {};
+            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
+            const maxFreq = Math.max(...Object.values(freq));
+            const modes = this.math.mode(sample);
+
+            return [
+                {
+                    description: this.i18n.t('frequency'),
+                    formula: 'Count occurrences of each value',
+                    substitution: Object.keys(freq).map(Number).sort((a, b) => a - b)
+                        .map(k => `${k}: ${freq[k]}`).join(', '),
+                    result: `Max frequency = ${maxFreq}`
+                },
+                {
+                    description: this.i18n.t('mode'),
+                    formula: 'Mo = value(s) with maximum frequency',
+                    substitution: '',
+                    result: modes.length > 0 ? modes.join(', ') : '-'
+                }
+            ];
+        }
+
+        solveIntervalSeries(data) {
+            const sample = data.sample;
+            const n = sample.length;
+            const intervalCount = data.intervalCount;
+            const min = Math.min(...sample);
+            const max = Math.max(...sample);
+            const width = this.math.round((max - min) / intervalCount);
+
+            const steps = [{
+                description: 'Interval width',
+                formula: 'h = (x_max - x_min) / k',
+                substitution: `h = (${max} - ${min}) / ${intervalCount}`,
+                result: width
+            }];
+
+            for (let i = 0; i < intervalCount; i++) {
+                const lower = this.math.round(min + i * width);
+                const upper = this.math.round(min + (i + 1) * width);
+                let count = 0;
+                sample.forEach(x => {
+                    if (i === intervalCount - 1) {
+                        if (x >= lower && x <= upper) count++;
+                    } else {
+                        if (x >= lower && x < upper) count++;
+                    }
+                });
+                steps.push({
+                    description: `[${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
+                    formula: 'Count values in interval',
+                    substitution: `Values in [${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
+                    result: `n\u1d62 = ${count}`
+                });
+            }
+            return steps;
+        }
+    }
+
+    /* ============================================================
+       App Class - Main Application Controller
+       ============================================================
+       Orchestrates all other classes. Manages:
+       - State (current task, score, timer, language, dark mode)
+       - Navigation between task types
+       - localStorage persistence
+       - Event handling
+       - UI updates
+    */
+    class App {
+        constructor() {
+            this.i18n = new I18n();
+            this.math = new MathEngine();
+            this.dataGen = new DataGenerator();
+            this.renderer = new TaskRenderer(this.i18n, this.math);
+            this.checker = new AnswerChecker(this.math);
+            this.solutionDisplay = new SolutionDisplay(this.i18n, this.math);
+
+            // Task types configuration
+            this.taskTypes = [
+                'sampleCharacteristics',
+                'empiricalDistribution',
+                'histogram',
+                'confidenceMean',
+                'confidenceProportion',
+                'hypothesisTesting',
+                'zTest',
+                'tTest',
+                'variance',
+                'stdDeviation',
+                'medianCalc',
+                'modeCalc',
+                'intervalSeries'
+            ];
+
+            // Task icons for sidebar
+            this.taskIcons = {
+                sampleCharacteristics: '\u03BC',
+                empiricalDistribution: 'F(x)',
+                histogram: '\u2593',
+                confidenceMean: '\u00B1',
+                confidenceProportion: 'p\u0302',
+                hypothesisTesting: 'H\u2080',
+                zTest: 'Z',
+                tTest: 't',
+                variance: 'S\u00B2',
+                stdDeviation: 'S',
+                medianCalc: 'Me',
+                modeCalc: 'Mo',
+                intervalSeries: '[ ]'
+            };
+
+            // Application state
+            this.state = {
+                currentTask: 'sampleCharacteristics',
+                currentData: null,
+                score: { correct: 0, total: 0 },
+                completedTasks: [],
+                timerSeconds: 0,
+                timerInterval: null,
+                darkMode: false,
+                language: 'ru'
+            };
+        }
+
+        /**
+         * Initialize the application
+         * Sets up event listeners, loads saved state, renders initial view
+         */
+        init() {
+            this.loadProgress();
+            this.renderSidebar();
+            this.selectTask(this.state.currentTask);
+            this.startTimer();
+            this.updateScore();
+            this.updateProgress();
+            this.applyTheme();
+            this.updateLanguageButtons();
+        }
+
+        /**
+         * Render the sidebar navigation with all task types
+         */
+        renderSidebar() {
+            const nav = document.getElementById('taskNav');
+            const i18n = this.i18n;
+            nav.innerHTML = '';
+            this.taskTypes.forEach(taskType => {
+                const li = document.createElement('li');
+                li.className = 'sidebar__nav-item' +
+                    (taskType === this.state.currentTask ? ' sidebar__nav-item--active' : '');
+                li.innerHTML = `<span class="sidebar__nav-item-icon">${this.taskIcons[taskType]}</span>
+                    <span>${i18n.t('tasks.' + taskType)}</span>`;
+                li.onclick = () => this.selectTask(taskType);
+                nav.appendChild(li);
+            });
+        }
+
+        /**
+         * Select and render a specific task type
+         */
+        selectTask(taskType) {
+            this.state.currentTask = taskType;
+            this.generateNewData();
+            this.renderSidebar(); // Update active state
+            this.saveProgress();
+        }
+
+        /**
+         * Generate new random data for the current task and re-render
+         */
+        generateNewData() {
+            const taskType = this.state.currentTask;
+            let data;
+
+            switch (taskType) {
+                case 'sampleCharacteristics': data = this.dataGen.generateSampleCharacteristicsData(); break;
+                case 'empiricalDistribution': data = this.dataGen.generateEmpiricalDistributionData(); break;
+                case 'histogram': data = this.dataGen.generateHistogramData(); break;
+                case 'confidenceMean': data = this.dataGen.generateConfidenceIntervalMeanData(); break;
+                case 'confidenceProportion': data = this.dataGen.generateConfidenceIntervalProportionData(); break;
+                case 'hypothesisTesting': data = this.dataGen.generateHypothesisTestData(); break;
+                case 'zTest': data = this.dataGen.generateZTestData(); break;
+                case 'tTest': data = this.dataGen.generateTTestData(); break;
+                case 'variance': data = this.dataGen.generateVarianceData(); break;
+                case 'stdDeviation': data = this.dataGen.generateStdDevData(); break;
+                case 'medianCalc': data = this.dataGen.generateMedianData(); break;
+                case 'modeCalc': data = this.dataGen.generateModeData(); break;
+                case 'intervalSeries': data = this.dataGen.generateIntervalSeriesData(); break;
+                default: data = this.dataGen.generateSampleCharacteristicsData();
+            }
+
+            this.state.currentData = data;
+            this.renderCurrentTask();
+        }
+
+        /**
+         * Render the current task in the content area
+         */
+        renderCurrentTask() {
+            const content = document.getElementById('taskContent');
+            content.innerHTML = this.renderer.renderTask(this.state.currentTask, this.state.currentData);
+        }
+
+        /**
+         * Check all user answers for the current task
+         */
+        checkAnswers() {
+            const results = this.checker.checkAllAnswers();
+            this.checker.highlightResults(results);
+
+            const scoreResult = this.checker.calculateScore(results);
+            if (scoreResult.total > 0) {
+                this.state.score.correct += scoreResult.correct;
+                this.state.score.total += scoreResult.total;
+                this.updateScore();
+
+                // Mark task as completed if all correct
+                if (scoreResult.percentage === 100 && !this.state.completedTasks.includes(this.state.currentTask)) {
+                    this.state.completedTasks.push(this.state.currentTask);
+                    this.updateProgress();
+                }
+            }
+            this.saveProgress();
+        }
+
+        /**
+         * Show the step-by-step solution for the current task
+         */
+        showSolution() {
+            const solutionArea = document.getElementById('solution-area');
+            if (solutionArea) {
+                const steps = this.solutionDisplay.generateSolution(this.state.currentTask, this.state.currentData);
+                solutionArea.innerHTML = this.solutionDisplay.renderSolution(steps);
+            }
+        }
+
+        /**
+         * Fill in all correct answers (Show Answers button)
+         */
+        showAnswers() {
+            const inputs = document.querySelectorAll('.input-field__input');
+            inputs.forEach(input => {
+                const answer = input.getAttribute('data-answer');
+                input.value = answer;
+                input.classList.remove('input-field__input--incorrect');
+                input.classList.add('input-field__input--correct');
+            });
+        }
+
+        /**
+         * Toggle dark/light mode
+         */
+        toggleDarkMode() {
+            this.state.darkMode = !this.state.darkMode;
+            this.applyTheme();
+            this.saveProgress();
+        }
+
+        /**
+         * Apply the current theme (dark or light)
+         */
+        applyTheme() {
+            if (this.state.darkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('darkToggle').textContent = this.i18n.t('lightMode');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('darkToggle').textContent = this.i18n.t('darkMode');
+            }
+        }
+
+        /**
+         * Switch the UI language
+         */
+        toggleLanguage(lang) {
+            this.state.language = lang;
+            this.i18n.setLanguage(lang);
+            this.updateLanguageButtons();
+            this.renderSidebar();
+            this.renderCurrentTask();
+            this.updateUITexts();
+            this.saveProgress();
+        }
+
+        /**
+         * Update language button active states
+         */
+        updateLanguageButtons() {
+            document.querySelectorAll('.header__lang-btn').forEach(btn => {
+                btn.classList.toggle('header__lang-btn--active', btn.getAttribute('data-lang') === this.state.language);
+            });
+        }
+
+        /**
+         * Update all static UI text elements to current language
+         */
+        updateUITexts() {
+            document.getElementById('headerTitle').textContent = this.i18n.t('headerTitle');
+            document.getElementById('sidebarTitle').textContent = this.i18n.t('sidebarTitle');
+            document.getElementById('footerText').textContent = this.i18n.t('footerText');
+        }
+
+        /**
+         * Start the elapsed time timer
+         */
+        startTimer() {
+            if (this.state.timerInterval) clearInterval(this.state.timerInterval);
+            this.state.timerInterval = setInterval(() => {
+                this.state.timerSeconds++;
+                this.updateTimerDisplay();
+            }, 1000);
+            this.updateTimerDisplay();
+        }
+
+        /**
+         * Update the timer display in MM:SS format
+         */
+        updateTimerDisplay() {
+            const minutes = Math.floor(this.state.timerSeconds / 60);
+            const seconds = this.state.timerSeconds % 60;
+            const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('timer').textContent = display;
+        }
+
+        /**
+         * Update the score display
+         */
+        updateScore() {
+            document.getElementById('score').textContent = `${this.state.score.correct}/${this.state.score.total}`;
+        }
+
+        /**
+         * Update the progress indicator (bar and text)
+         */
+        updateProgress() {
+            const total = this.taskTypes.length;
+            const completed = this.state.completedTasks.length;
+            const percentage = Math.round((completed / total) * 100);
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${completed}/${total}`;
+        }
+
+        /**
+         * Save current progress to localStorage
+         */
+        saveProgress() {
+            const saveData = {
+                currentTask: this.state.currentTask,
+                score: this.state.score,
+                completedTasks: this.state.completedTasks,
+                timerSeconds: this.state.timerSeconds,
+                darkMode: this.state.darkMode,
+                language: this.state.language
+            };
+            try {
+                localStorage.setItem('statistics_platform_state', JSON.stringify(saveData));
+            } catch (e) {
+                // localStorage might be unavailable in some contexts
+            }
+        }
+
+        /**
+         * Load saved progress from localStorage
+         */
+        loadProgress() {
+            try {
+                const saved = localStorage.getItem('statistics_platform_state');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    this.state.currentTask = data.currentTask || 'sampleCharacteristics';
+                    this.state.score = data.score || { correct: 0, total: 0 };
+                    this.state.completedTasks = data.completedTasks || [];
+                    this.state.timerSeconds = data.timerSeconds || 0;
+                    this.state.darkMode = data.darkMode || false;
+                    this.state.language = data.language || 'ru';
+                    this.i18n.setLanguage(this.state.language);
+                }
+            } catch (e) {
+                // If parsing fails, use default state
+            }
+        }
+
+        /**
+         * Reset all progress - clears localStorage and resets state
+         */
+        resetProgress() {
+            try {
+                localStorage.removeItem('statistics_platform_state');
+            } catch (e) {}
+            this.state.score = { correct: 0, total: 0 };
+            this.state.completedTasks = [];
+            this.state.timerSeconds = 0;
+            if (this.state.timerInterval) clearInterval(this.state.timerInterval);
+            this.state.currentTask = 'sampleCharacteristics';
+            this.updateScore();
+            this.updateProgress();
+            this.startTimer();
+            this.selectTask('sampleCharacteristics');
+        }
+    }
+
+    /* ============================================================
+       Application Initialization
+       ============================================================
+       Create the App instance and initialize when the DOM is ready.
+    */
+    let app;
+    document.addEventListener('DOMContentLoaded', function() {
+        app = new App();
+        app.init();
+    });
+    </script>
+</body>
+</html>
