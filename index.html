@@ -83,7 +83,8 @@
     --transition-normal: 0.25s ease;
     --transition-slow: 0.4s ease;
 
-    --font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+    --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --font-family-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -126,6 +127,155 @@
     --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-header: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   Trilingual Text Display System
+   ============================================================ */
+.tri-text {
+    display: block;
+    line-height: 1.4;
+}
+
+.tri-text__ru {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.05em;
+}
+
+.tri-text__uz {
+    display: block;
+    font-weight: 400;
+    color: #1a5276;
+    font-size: 0.95em;
+    margin-top: 2px;
+}
+
+.tri-text__en {
+    display: block;
+    font-weight: 400;
+    color: #555;
+    font-style: italic;
+    font-size: 0.9em;
+    margin-top: 1px;
+}
+
+[data-theme="dark"] .tri-text__uz {
+    color: #5dade2;
+}
+
+[data-theme="dark"] .tri-text__en {
+    color: #aab7c4;
+}
+
+/* Trilingual title (task card headings) */
+.tri-title {
+    margin-bottom: 12px;
+}
+
+.tri-title .tri-text__ru {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.tri-title .tri-text__uz {
+    font-size: var(--font-size-lg);
+    margin-top: 4px;
+}
+
+.tri-title .tri-text__en {
+    font-size: var(--font-size-base);
+    margin-top: 3px;
+}
+
+/* Trilingual description (task card body text) */
+.tri-desc {
+    margin-bottom: 20px;
+    line-height: 1.7;
+}
+
+.tri-desc .tri-text__ru {
+    font-weight: 500;
+    font-size: var(--font-size-base);
+    line-height: 1.7;
+}
+
+.tri-desc .tri-text__uz {
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    margin-top: 6px;
+}
+
+.tri-desc .tri-text__en {
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    margin-top: 4px;
+}
+
+/* Trilingual inline label (for input fields, using " / " separator) */
+.tri-label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.tri-label__ru {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tri-label__uz {
+    font-weight: 400;
+    color: #1a5276;
+}
+
+.tri-label__en {
+    font-weight: 400;
+    color: #555;
+    font-style: italic;
+}
+
+[data-theme="dark"] .tri-label__uz {
+    color: #5dade2;
+}
+
+[data-theme="dark"] .tri-label__en {
+    color: #aab7c4;
+}
+
+/* ============================================================
+   Numeric and Formula Typography
+   ============================================================ */
+.data-table td {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+}
+
+.input-field__input {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+}
+
+.solution__step-formula {
+    font-family: var(--font-family-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+}
+
+.formula-display {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    border: 1px solid var(--border-primary);
 }
 
 /* ============================================================
@@ -200,29 +350,6 @@ body {
     padding: 6px 12px;
     border-radius: var(--radius-md);
     color: #a3d9b1;
-}
-
-.header__lang-switcher {
-    display: flex;
-    gap: 4px;
-}
-
-.header__lang-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: var(--text-header);
-    padding: 4px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    transition: all var(--transition-fast);
-}
-
-.header__lang-btn:hover,
-.header__lang-btn--active {
-    background: rgba(255,255,255,0.25);
-    border-color: rgba(255,255,255,0.5);
 }
 
 .header__dark-toggle {
@@ -605,7 +732,7 @@ body {
 }
 
 .solution__step-formula {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--font-family-mono);
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
     margin: 4px 0;
@@ -613,6 +740,8 @@ body {
     background: var(--bg-primary);
     border-radius: var(--radius-sm);
     display: inline-block;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
 }
 
 .solution__step-result {
@@ -734,17 +863,12 @@ body {
          Header Section - Navigation, Timer, Score, Controls
          ============================================================ -->
     <header class="header" id="header">
-        <div class="header__title" id="headerTitle">Статистика</div>
+        <div class="header__title" id="headerTitle">Статистика - Тестирование / Statistika - Test / Statistics - Testing</div>
         <div class="header__controls">
             <div class="header__timer" id="timer">00:00</div>
             <div class="header__score" id="score">0/0</div>
-            <div class="header__lang-switcher">
-                <button class="header__lang-btn header__lang-btn--active" data-lang="ru" onclick="app.toggleLanguage('ru')">RU</button>
-                <button class="header__lang-btn" data-lang="uz" onclick="app.toggleLanguage('uz')">UZ</button>
-                <button class="header__lang-btn" data-lang="en" onclick="app.toggleLanguage('en')">EN</button>
-            </div>
-            <button class="header__dark-toggle" id="darkToggle" onclick="app.toggleDarkMode()">🌙</button>
-            <button class="header__reset-btn" id="resetBtn" onclick="app.resetProgress()">↺</button>
+            <button class="header__dark-toggle" id="darkToggle" onclick="app.toggleDarkMode()">&#127769;</button>
+            <button class="header__reset-btn" id="resetBtn" onclick="app.resetProgress()">&#8634;</button>
         </div>
     </header>
 
@@ -1064,24 +1188,71 @@ body {
         }
 
         /**
-         * Get translated string for current language
+         * Get translated string for a specific language
          * Supports dot notation for nested keys (e.g., 'tasks.zTest')
          */
-        t(key) {
+        tLang(key, lang) {
             const keys = key.split('.');
-            let value = this.translations[this.currentLang];
+            let value = this.translations[lang];
             for (const k of keys) {
                 if (value && typeof value === 'object') {
                     value = value[k];
                 } else {
-                    return key; // Fallback to key if translation not found
+                    return key;
                 }
             }
             return value || key;
         }
 
         /**
-         * Switch the current language and trigger UI re-render
+         * Get translated string - returns Russian by default for simple lookups
+         * For backward compatibility with button text etc.
+         */
+        t(key) {
+            return this.tLang(key, 'ru');
+        }
+
+        /**
+         * Return trilingual HTML block for titles (three lines, styled)
+         */
+        triTitle(key) {
+            const ru = this.tLang(key, 'ru');
+            const uz = this.tLang(key, 'uz');
+            const en = this.tLang(key, 'en');
+            return `<span class="tri-text tri-title"><span class="tri-text__ru">${ru}</span><span class="tri-text__uz">${uz}</span><span class="tri-text__en">${en}</span></span>`;
+        }
+
+        /**
+         * Return trilingual HTML block for descriptions (three lines, styled)
+         */
+        triDesc(key) {
+            const ru = this.tLang(key, 'ru');
+            const uz = this.tLang(key, 'uz');
+            const en = this.tLang(key, 'en');
+            return `<span class="tri-text tri-desc"><span class="tri-text__ru">${ru}</span><span class="tri-text__uz">${uz}</span><span class="tri-text__en">${en}</span></span>`;
+        }
+
+        /**
+         * Return trilingual inline label using " / " separator
+         */
+        triLabel(key) {
+            const ru = this.tLang(key, 'ru');
+            const uz = this.tLang(key, 'uz');
+            const en = this.tLang(key, 'en');
+            return `<span class="tri-label"><span class="tri-label__ru">${ru}</span> / <span class="tri-label__uz">${uz}</span> / <span class="tri-label__en">${en}</span></span>`;
+        }
+
+        /**
+         * Return trilingual sidebar text (compact format)
+         */
+        triSidebar(key) {
+            const ru = this.tLang(key, 'ru');
+            const uz = this.tLang(key, 'uz');
+            return `<span style="display:block;font-weight:600;font-size:0.85em;">${ru}</span><span style="display:block;font-size:0.75em;color:#5dade2;margin-top:1px;">${uz}</span>`;
+        }
+
+        /**
+         * Switch the current language (kept for localStorage compat, but unused for display)
          */
         setLanguage(lang) {
             if (this.translations[lang]) {
@@ -1620,7 +1791,7 @@ body {
         }
 
         /**
-         * Render input fields with labels
+         * Render input fields with trilingual labels
          */
         renderInputFields(fields) {
             let html = '<div class="input-group">';
@@ -1637,32 +1808,38 @@ body {
 
         /**
          * Render action buttons (Check, Solution, New Data, Show Answers)
+         * Uses trilingual labels with " / " separator
          */
         renderButtons() {
+            const i18n = this.i18n;
+            const btnCheck = `${i18n.tLang('btnCheck','ru')} / ${i18n.tLang('btnCheck','uz')} / ${i18n.tLang('btnCheck','en')}`;
+            const btnSolution = `${i18n.tLang('btnSolution','ru')} / ${i18n.tLang('btnSolution','uz')} / ${i18n.tLang('btnSolution','en')}`;
+            const btnShowAnswers = `${i18n.tLang('btnShowAnswers','ru')} / ${i18n.tLang('btnShowAnswers','uz')} / ${i18n.tLang('btnShowAnswers','en')}`;
+            const btnNewData = `${i18n.tLang('btnNewData','ru')} / ${i18n.tLang('btnNewData','uz')} / ${i18n.tLang('btnNewData','en')}`;
             return `<div class="btn-group">
                 <button class="btn btn--primary" onclick="app.checkAnswers()">
-                    ${this.i18n.t('btnCheck')}
+                    ${btnCheck}
                 </button>
                 <button class="btn btn--warning" onclick="app.showSolution()">
-                    ${this.i18n.t('btnSolution')}
+                    ${btnSolution}
                 </button>
                 <button class="btn btn--success" onclick="app.showAnswers()">
-                    ${this.i18n.t('btnShowAnswers')}
+                    ${btnShowAnswers}
                 </button>
                 <button class="btn btn--danger" onclick="app.generateNewData()">
-                    ${this.i18n.t('btnNewData')}
+                    ${btnNewData}
                 </button>
             </div>`;
         }
 
         /**
-         * Render the sample data display
+         * Render the sample data display with trilingual labels
          */
         renderSampleDisplay(sample) {
             const i18n = this.i18n;
             return `<div class="task-card__description">
-                <strong>${i18n.t('sample')}:</strong> ${sample.join(', ')}<br>
-                <strong>${i18n.t('sampleSize')}:</strong> ${sample.length}
+                <strong>${i18n.triLabel('sample')}:</strong> <span class="formula-display">${sample.join(', ')}</span><br>
+                <strong>${i18n.triLabel('sampleSize')}:</strong> <span class="formula-display">${sample.length}</span>
             </div>`;
         }
 
@@ -1683,19 +1860,19 @@ body {
             const max = Math.max(...sample);
 
             const fields = [
-                { id: 'mean', label: i18n.t('mean'), answer: mean },
-                { id: 'variance', label: i18n.t('variance'), answer: variance },
-                { id: 'stdDev', label: i18n.t('stdDev'), answer: stdDev },
-                { id: 'median', label: i18n.t('median'), answer: med },
-                { id: 'mode', label: i18n.t('mode'), answer: modes.length > 0 ? modes.join(', ') : '-' },
-                { id: 'range', label: i18n.t('range'), answer: range },
-                { id: 'min', label: i18n.t('min'), answer: min },
-                { id: 'max', label: i18n.t('max'), answer: max }
+                { id: 'mean', label: i18n.triLabel('mean'), answer: mean },
+                { id: 'variance', label: i18n.triLabel('variance'), answer: variance },
+                { id: 'stdDev', label: i18n.triLabel('stdDev'), answer: stdDev },
+                { id: 'median', label: i18n.triLabel('median'), answer: med },
+                { id: 'mode', label: i18n.triLabel('mode'), answer: modes.length > 0 ? modes.join(', ') : '-' },
+                { id: 'range', label: i18n.triLabel('range'), answer: range },
+                { id: 'min', label: i18n.triLabel('min'), answer: min },
+                { id: 'max', label: i18n.triLabel('max'), answer: max }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.sampleCharacteristics')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.sampleCharacteristics')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.sampleCharacteristics')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.sampleCharacteristics')}</div>
                 ${this.renderSampleDisplay(sample)}
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -1711,7 +1888,7 @@ body {
             const sortedKeys = Object.keys(relFreq).map(Number).sort((a, b) => a - b);
 
             // Build answer table for reference
-            const headers = [i18n.t('value'), i18n.t('frequency'), i18n.t('relFreq'), i18n.t('cumFreq')];
+            const headers = [i18n.triLabel('value'), i18n.triLabel('frequency'), i18n.triLabel('relFreq'), i18n.triLabel('cumFreq')];
             const freq = {};
             sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
             const rows = sortedKeys.map(k => [k, freq[k], relFreq[k], edf[k]]);
@@ -1719,7 +1896,7 @@ body {
             // Create input fields for relative frequencies
             const fields = sortedKeys.map(k => ({
                 id: `relfreq-${k}`,
-                label: `${i18n.t('relFreq')} (x=${k})`,
+                label: `${i18n.triLabel('relFreq')} (x=${k})`,
                 answer: relFreq[k]
             }));
 
@@ -1731,12 +1908,12 @@ body {
             }));
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.empiricalDistribution')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.empiricalDistribution')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.empiricalDistribution')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.empiricalDistribution')}</div>
                 ${this.renderSampleDisplay(sample)}
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('relFreq')}</h3>
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.triLabel('relFreq')}</h3>
                 ${this.renderInputFields(fields)}
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('cumFreq')}</h3>
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.triLabel('cumFreq')}</h3>
                 ${this.renderInputFields(cumFields)}
                 ${this.renderButtons()}
                 <div id="solution-area"></div>
@@ -1778,15 +1955,15 @@ body {
             }));
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.histogram')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.histogram')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.histogram')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.histogram')}</div>
                 ${this.renderSampleDisplay(sample)}
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>${i18n.t('interval')}:</strong> ${intervalCount} | 
-                    <strong>Min:</strong> ${min} | <strong>Max:</strong> ${max} |
-                    <strong>h:</strong> ${width}
+                    <strong>${i18n.triLabel('interval')}:</strong> <span class="formula-display">${intervalCount}</span> | 
+                    <strong>Min:</strong> <span class="formula-display">${min}</span> | <strong>Max:</strong> <span class="formula-display">${max}</span> |
+                    <strong>h:</strong> <span class="formula-display">${width}</span>
                 </p>
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('relFreq')}</h3>
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.triLabel('relFreq')}</h3>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
                 <div id="solution-area"></div>
@@ -1800,17 +1977,17 @@ body {
             const result = this.math.confidenceIntervalMean(sample, confidence);
 
             const fields = [
-                { id: 'ci-mean', label: i18n.t('mean'), answer: result.mean },
-                { id: 'ci-lower', label: i18n.t('lowerBound'), answer: result.lower },
-                { id: 'ci-upper', label: i18n.t('upperBound'), answer: result.upper }
+                { id: 'ci-mean', label: i18n.triLabel('mean'), answer: result.mean },
+                { id: 'ci-lower', label: i18n.triLabel('lowerBound'), answer: result.lower },
+                { id: 'ci-upper', label: i18n.triLabel('upperBound'), answer: result.upper }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.confidenceMean')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.confidenceMean')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.confidenceMean')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.confidenceMean')}</div>
                 ${this.renderSampleDisplay(sample)}
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>${i18n.t('confidence')}:</strong> ${confidence}
+                    <strong>${i18n.triLabel('confidence')}:</strong> <span class="formula-display">${confidence}</span>
                 </p>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -1825,18 +2002,18 @@ body {
             const result = this.math.confidenceIntervalProportion(p, data.n, confidence);
 
             const fields = [
-                { id: 'cp-p', label: i18n.t('proportion'), answer: result.p },
-                { id: 'cp-lower', label: i18n.t('lowerBound'), answer: result.lower },
-                { id: 'cp-upper', label: i18n.t('upperBound'), answer: result.upper }
+                { id: 'cp-p', label: i18n.triLabel('proportion'), answer: result.p },
+                { id: 'cp-lower', label: i18n.triLabel('lowerBound'), answer: result.lower },
+                { id: 'cp-upper', label: i18n.triLabel('upperBound'), answer: result.upper }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.confidenceProportion')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.confidenceProportion')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.confidenceProportion')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.confidenceProportion')}</div>
                 <div class="task-card__description">
-                    <strong>${i18n.t('successes')}:</strong> ${data.successes}<br>
-                    <strong>${i18n.t('trials')}:</strong> ${data.n}<br>
-                    <strong>${i18n.t('confidence')}:</strong> ${confidence}
+                    <strong>${i18n.triLabel('successes')}:</strong> <span class="formula-display">${data.successes}</span><br>
+                    <strong>${i18n.triLabel('trials')}:</strong> <span class="formula-display">${data.n}</span><br>
+                    <strong>${i18n.triLabel('confidence')}:</strong> <span class="formula-display">${confidence}</span>
                 </div>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -1858,20 +2035,20 @@ body {
             const reject = Math.abs(zStat) > zCritical;
 
             const fields = [
-                { id: 'ht-mean', label: i18n.t('mean'), answer: sampleMean },
-                { id: 'ht-z', label: i18n.t('zValue'), answer: zStat },
-                { id: 'ht-zcrit', label: i18n.t('criticalValue'), answer: zCritical },
-                { id: 'ht-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
+                { id: 'ht-mean', label: i18n.triLabel('mean'), answer: sampleMean },
+                { id: 'ht-z', label: i18n.triLabel('zValue'), answer: zStat },
+                { id: 'ht-zcrit', label: i18n.triLabel('criticalValue'), answer: zCritical },
+                { id: 'ht-conclusion', label: i18n.triLabel('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.hypothesisTesting')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.hypothesisTesting')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.hypothesisTesting')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.hypothesisTesting')}</div>
                 ${this.renderSampleDisplay(sample)}
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>H₀: μ = ${populationMean}</strong><br>
-                    <strong>${i18n.t('sigma')}:</strong> ${sigma} | 
-                    <strong>${i18n.t('alpha')}:</strong> ${alpha}
+                    <strong class="formula-display">H&#8320;: &#956; = ${populationMean}</strong><br>
+                    <strong>${i18n.triLabel('sigma')}:</strong> <span class="formula-display">${sigma}</span> | 
+                    <strong>${i18n.triLabel('alpha')}:</strong> <span class="formula-display">${alpha}</span>
                 </p>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -1893,20 +2070,20 @@ body {
             const reject = Math.abs(zStat) > zCritical;
 
             const fields = [
-                { id: 'zt-mean', label: i18n.t('mean'), answer: sampleMean },
-                { id: 'zt-z', label: i18n.t('zValue'), answer: zStat },
-                { id: 'zt-zcrit', label: i18n.t('criticalValue'), answer: zCritical },
-                { id: 'zt-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
+                { id: 'zt-mean', label: i18n.triLabel('mean'), answer: sampleMean },
+                { id: 'zt-z', label: i18n.triLabel('zValue'), answer: zStat },
+                { id: 'zt-zcrit', label: i18n.triLabel('criticalValue'), answer: zCritical },
+                { id: 'zt-conclusion', label: i18n.triLabel('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.zTest')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.zTest')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.zTest')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.zTest')}</div>
                 ${this.renderSampleDisplay(sample)}
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>H₀: μ = ${populationMean}</strong><br>
-                    <strong>${i18n.t('sigma')}:</strong> ${sigma} | 
-                    <strong>${i18n.t('alpha')}:</strong> ${alpha}
+                    <strong class="formula-display">H&#8320;: &#956; = ${populationMean}</strong><br>
+                    <strong>${i18n.triLabel('sigma')}:</strong> <span class="formula-display">${sigma}</span> | 
+                    <strong>${i18n.triLabel('alpha')}:</strong> <span class="formula-display">${alpha}</span>
                 </p>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -1929,21 +2106,21 @@ body {
             const reject = Math.abs(tStat) > tCritical;
 
             const fields = [
-                { id: 'tt-mean', label: i18n.t('mean'), answer: sampleMean },
-                { id: 'tt-s', label: i18n.t('stdDev'), answer: s },
-                { id: 'tt-t', label: i18n.t('tValue'), answer: tStat },
-                { id: 'tt-tcrit', label: i18n.t('criticalValue'), answer: tCritical },
-                { id: 'tt-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
+                { id: 'tt-mean', label: i18n.triLabel('mean'), answer: sampleMean },
+                { id: 'tt-s', label: i18n.triLabel('stdDev'), answer: s },
+                { id: 'tt-t', label: i18n.triLabel('tValue'), answer: tStat },
+                { id: 'tt-tcrit', label: i18n.triLabel('criticalValue'), answer: tCritical },
+                { id: 'tt-conclusion', label: i18n.triLabel('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.tTest')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.tTest')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.tTest')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.tTest')}</div>
                 ${this.renderSampleDisplay(sample)}
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>H₀: μ = ${populationMean}</strong><br>
-                    <strong>${i18n.t('alpha')}:</strong> ${alpha} | 
-                    <strong>df:</strong> ${df}
+                    <strong class="formula-display">H&#8320;: &#956; = ${populationMean}</strong><br>
+                    <strong>${i18n.triLabel('alpha')}:</strong> <span class="formula-display">${alpha}</span> | 
+                    <strong>df:</strong> <span class="formula-display">${df}</span>
                 </p>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -1958,13 +2135,13 @@ body {
             const mean = this.math.sampleMean(sample);
 
             const fields = [
-                { id: 'var-mean', label: i18n.t('mean'), answer: mean },
-                { id: 'var-variance', label: i18n.t('variance'), answer: variance }
+                { id: 'var-mean', label: i18n.triLabel('mean'), answer: mean },
+                { id: 'var-variance', label: i18n.triLabel('variance'), answer: variance }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.variance')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.variance')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.variance')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.variance')}</div>
                 ${this.renderSampleDisplay(sample)}
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -1980,14 +2157,14 @@ body {
             const mean = this.math.sampleMean(sample);
 
             const fields = [
-                { id: 'sd-mean', label: i18n.t('mean'), answer: mean },
-                { id: 'sd-variance', label: i18n.t('variance'), answer: variance },
-                { id: 'sd-stddev', label: i18n.t('stdDev'), answer: stdDev }
+                { id: 'sd-mean', label: i18n.triLabel('mean'), answer: mean },
+                { id: 'sd-variance', label: i18n.triLabel('variance'), answer: variance },
+                { id: 'sd-stddev', label: i18n.triLabel('stdDev'), answer: stdDev }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.stdDeviation')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.stdDeviation')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.stdDeviation')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.stdDeviation')}</div>
                 ${this.renderSampleDisplay(sample)}
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -2002,15 +2179,15 @@ body {
             const sorted = [...sample].sort((a, b) => a - b);
 
             const fields = [
-                { id: 'med-median', label: i18n.t('median'), answer: med }
+                { id: 'med-median', label: i18n.triLabel('median'), answer: med }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.medianCalc')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.medianCalc')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.medianCalc')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.medianCalc')}</div>
                 ${this.renderSampleDisplay(sample)}
                 <p style="color: var(--text-muted); font-size: var(--font-size-sm); margin-bottom: 12px;">
-                    Sorted: ${sorted.join(', ')}
+                    Sorted: <span class="formula-display">${sorted.join(', ')}</span>
                 </p>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
@@ -2028,16 +2205,16 @@ body {
             const freq = {};
             sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
             const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
-            const headers = [i18n.t('value'), i18n.t('frequency')];
+            const headers = [i18n.triLabel('value'), i18n.triLabel('frequency')];
             const rows = sortedKeys.map(k => [k, freq[k]]);
 
             const fields = [
-                { id: 'mode-mode', label: i18n.t('mode'), answer: modeStr }
+                { id: 'mode-mode', label: i18n.triLabel('mode'), answer: modeStr }
             ];
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.modeCalc')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.modeCalc')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.modeCalc')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.modeCalc')}</div>
                 ${this.renderSampleDisplay(sample)}
                 ${this.renderTable(headers, rows)}
                 ${this.renderInputFields(fields)}
@@ -2078,15 +2255,15 @@ body {
             }));
 
             return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.intervalSeries')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.intervalSeries')}</p>
+                <h2 class="task-card__title">${i18n.triTitle('tasks.intervalSeries')}</h2>
+                <div class="task-card__description">${i18n.triDesc('taskDescriptions.intervalSeries')}</div>
                 ${this.renderSampleDisplay(sample)}
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>${i18n.t('interval')}:</strong> ${intervalCount} | 
-                    <strong>Min:</strong> ${min} | <strong>Max:</strong> ${max} |
-                    <strong>h:</strong> ${width}
+                    <strong>${i18n.triLabel('interval')}:</strong> <span class="formula-display">${intervalCount}</span> | 
+                    <strong>Min:</strong> <span class="formula-display">${min}</span> | <strong>Max:</strong> <span class="formula-display">${max}</span> |
+                    <strong>h:</strong> <span class="formula-display">${width}</span>
                 </p>
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('intervalFreq')}</h3>
+                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.triLabel('intervalFreq')}</h3>
                 ${this.renderInputFields(fields)}
                 ${this.renderButtons()}
                 <div id="solution-area"></div>
@@ -2217,18 +2394,27 @@ body {
         }
 
         /**
-         * Render solution steps as HTML
+         * Render solution steps as HTML (with trilingual section title)
          */
         renderSolution(steps) {
             const i18n = this.i18n;
+            const titleRu = i18n.tLang('solutionTitle', 'ru');
+            const titleUz = i18n.tLang('solutionTitle', 'uz');
+            const titleEn = i18n.tLang('solutionTitle', 'en');
             let html = `<div class="solution">
-                <h3 class="solution__title">${i18n.t('solutionTitle')}</h3>`;
+                <h3 class="solution__title">${titleRu} / ${titleUz} / ${titleEn}</h3>`;
+            const stepRu = i18n.tLang('step', 'ru');
+            const stepUz = i18n.tLang('step', 'uz');
+            const stepEn = i18n.tLang('step', 'en');
+            const resultRu = i18n.tLang('result', 'ru');
+            const resultUz = i18n.tLang('result', 'uz');
+            const resultEn = i18n.tLang('result', 'en');
             steps.forEach((step, idx) => {
                 html += `<div class="solution__step">
-                    <div class="solution__step-title">${i18n.t('step')} ${idx + 1}: ${step.description}</div>
+                    <div class="solution__step-title">${stepRu} / ${stepUz} / ${stepEn} ${idx + 1}: ${step.description}</div>
                     ${step.formula ? `<div class="solution__step-formula">${step.formula}</div>` : ''}
                     ${step.substitution ? `<div class="solution__step-formula">${step.substitution}</div>` : ''}
-                    <div class="solution__step-result">${i18n.t('result')}: ${step.result}</div>
+                    <div class="solution__step-result">${resultRu} / ${resultUz} / ${resultEn}: ${step.result}</div>
                 </div>`;
             });
             html += '</div>';
@@ -2744,11 +2930,11 @@ body {
             this.updateScore();
             this.updateProgress();
             this.applyTheme();
-            this.updateLanguageButtons();
+            this.updateUITexts();
         }
 
         /**
-         * Render the sidebar navigation with all task types
+         * Render the sidebar navigation with all task types (trilingual)
          */
         renderSidebar() {
             const nav = document.getElementById('taskNav');
@@ -2759,7 +2945,7 @@ body {
                 li.className = 'sidebar__nav-item' +
                     (taskType === this.state.currentTask ? ' sidebar__nav-item--active' : '');
                 li.innerHTML = `<span class="sidebar__nav-item-icon">${this.taskIcons[taskType]}</span>
-                    <span>${i18n.t('tasks.' + taskType)}</span>`;
+                    <span>${i18n.triSidebar('tasks.' + taskType)}</span>`;
                 li.onclick = () => this.selectTask(taskType);
                 nav.appendChild(li);
             });
@@ -2883,42 +3069,21 @@ body {
         applyTheme() {
             if (this.state.darkMode) {
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('darkToggle').textContent = this.i18n.t('lightMode');
+                document.getElementById('darkToggle').textContent = this.i18n.tLang('lightMode', 'ru');
             } else {
                 document.documentElement.removeAttribute('data-theme');
-                document.getElementById('darkToggle').textContent = this.i18n.t('darkMode');
+                document.getElementById('darkToggle').textContent = this.i18n.tLang('darkMode', 'ru');
             }
         }
 
         /**
-         * Switch the UI language
-         */
-        toggleLanguage(lang) {
-            this.state.language = lang;
-            this.i18n.setLanguage(lang);
-            this.updateLanguageButtons();
-            this.renderSidebar();
-            this.renderCurrentTask();
-            this.updateUITexts();
-            this.saveProgress();
-        }
-
-        /**
-         * Update language button active states
-         */
-        updateLanguageButtons() {
-            document.querySelectorAll('.header__lang-btn').forEach(btn => {
-                btn.classList.toggle('header__lang-btn--active', btn.getAttribute('data-lang') === this.state.language);
-            });
-        }
-
-        /**
-         * Update all static UI text elements to current language
+         * Update all static UI text elements (trilingual header/footer)
          */
         updateUITexts() {
-            document.getElementById('headerTitle').textContent = this.i18n.t('headerTitle');
-            document.getElementById('sidebarTitle').textContent = this.i18n.t('sidebarTitle');
-            document.getElementById('footerText').textContent = this.i18n.t('footerText');
+            const i18n = this.i18n;
+            document.getElementById('headerTitle').innerHTML = `<span style="font-weight:700;">${i18n.tLang('headerTitle','ru')}</span> <span style="font-size:0.8em;opacity:0.7;">/ ${i18n.tLang('headerTitle','uz')} / ${i18n.tLang('headerTitle','en')}</span>`;
+            document.getElementById('sidebarTitle').innerHTML = `${i18n.tLang('sidebarTitle','ru')} / ${i18n.tLang('sidebarTitle','uz')} / ${i18n.tLang('sidebarTitle','en')}`;
+            document.getElementById('footerText').innerHTML = `${i18n.tLang('footerText','ru')}<br><span style="color:#1a5276;">${i18n.tLang('footerText','uz')}</span><br><span style="font-style:italic;color:#555;">${i18n.tLang('footerText','en')}</span>`;
         }
 
         /**
