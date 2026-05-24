@@ -1,0 +1,33 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Redesign the interface to match CDI platform screenshots - remove sidebar, use academic/university exam form style with blue section headers, inline inputs, simple tables, and vertically scrolling layout. Keep all JavaScript logic intact.",
+  "status": "in_progress",
+  "steps": [
+    "Replace CSS with CDI platform academic style: white background, no cards/shadows, blue section headers, simple borders, inline inputs",
+    "Replace HTML structure: remove sidebar, add task selector dropdown at top, simplify header",
+    "Modify TaskRenderer to use new CDI-style rendering with numbered inline questions and blue section headers",
+    "Modify App class to work without sidebar navigation, use dropdown instead",
+    "Verify all 13 task types still render and function correctly"
+  ],
+  "acceptance_criteria": [
+    "No sidebar navigation - tasks selected via dropdown",
+    "White/light gray page background with no card styling",
+    "Blue section headers with white text",
+    "Small inline input fields (60-80px) placed after label text",
+    "Simple tables with blue headers, thin borders, no rounded corners",
+    "Timer and score displayed subtly at top",
+    "All 13 task types functional",
+    "Check, Solution, New Data buttons all work",
+    "Dark mode toggle still present but subtle",
+    "localStorage persistence still works",
+    "No external dependencies added"
+  ],
+  "verification": [
+    "Run: test -f /projects/sandbox/statistics/index.html && echo 'File exists'",
+    "Run: grep -c 'class ' /projects/sandbox/statistics/index.html to verify JS classes present",
+    "Run: grep -l 'cdn\\|googleapis\\|unpkg\\|cdnjs\\|jsdelivr' /projects/sandbox/statistics/index.html should return no results"
+  ],
+  "blocked_reason": null,
+  "findings": null
+}
