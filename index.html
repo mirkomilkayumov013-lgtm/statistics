@@ -1,3035 +1,1319 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Статистика - Платформа тестирования</title>
-    <!-- 
-        Statistics Testing Platform
-        ============================
-        A fully self-contained, single-file interactive educational platform
-        for mathematical statistics and probability theory.
-        
-        Architecture:
-        - MathEngine: All statistical calculations
-        - DataGenerator: Random data generation for tasks
-        - TaskRenderer: UI rendering for each task type
-        - AnswerChecker: Validates user answers with tolerance
-        - SolutionDisplay: Step-by-step solution generation
-        - I18n: Internationalization (RU, UZ, EN)
-        - App: Main controller orchestrating everything
-        
-        No external dependencies. Works completely offline.
-    -->
-    <style>
-/* ============================================================
-   CSS Custom Properties - Theming System
-   Light and dark mode support via CSS variables
-   ============================================================ */
-:root {
-    /* Light theme (default) */
-    --bg-primary: #f0f4f8;
-    --bg-secondary: #ffffff;
-    --bg-header: #1a2332;
-    --bg-card: #ffffff;
-    --bg-input: #ffffff;
-    --bg-table-header: #2c3e50;
-    --bg-table-row: #ffffff;
-    --bg-table-row-alt: #f8fafc;
-    --bg-table-hover: #e8f0fe;
-    --bg-sidebar: #ffffff;
-    --bg-btn-primary: #3498db;
-    --bg-btn-primary-hover: #2980b9;
-    --bg-btn-success: #27ae60;
-    --bg-btn-success-hover: #219a52;
-    --bg-btn-warning: #f39c12;
-    --bg-btn-warning-hover: #d68910;
-    --bg-btn-danger: #e74c3c;
-    --bg-btn-danger-hover: #c0392b;
-    --bg-correct: #d4edda;
-    --bg-incorrect: #f8d7da;
-    --bg-solution: #f8f9fa;
-    --bg-progress: #e9ecef;
-    --bg-progress-fill: #3498db;
-
-    --text-primary: #2c3e50;
-    --text-secondary: #5a6c7d;
-    --text-header: #ffffff;
-    --text-table-header: #ffffff;
-    --text-muted: #8899aa;
-    --text-btn: #ffffff;
-    --text-link: #3498db;
-    --text-correct: #155724;
-    --text-incorrect: #721c24;
-
-    --border-primary: #dee2e6;
-    --border-input: #ced4da;
-    --border-input-focus: #3498db;
-    --border-card: #e2e8f0;
-    --border-correct: #c3e6cb;
-    --border-incorrect: #f5c6cb;
-
-    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
-    --shadow-header: 0 2px 10px rgba(0, 0, 0, 0.15);
-    --shadow-btn: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.25s ease;
-    --transition-slow: 0.4s ease;
-
-    --font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-lg: 1.125rem;
-    --font-size-xl: 1.25rem;
-    --font-size-2xl: 1.5rem;
-    --font-size-3xl: 2rem;
-}
-
-/* Dark theme */
-[data-theme="dark"] {
-    --bg-primary: #1a1a2e;
-    --bg-secondary: #16213e;
-    --bg-header: #0f0f23;
-    --bg-card: #1e2a3a;
-    --bg-input: #2a3a4a;
-    --bg-table-header: #0f1923;
-    --bg-table-row: #1e2a3a;
-    --bg-table-row-alt: #243447;
-    --bg-table-hover: #2a4060;
-    --bg-sidebar: #16213e;
-    --bg-btn-primary: #4aa3df;
-    --bg-btn-primary-hover: #3498db;
-    --bg-solution: #243447;
-    --bg-progress: #2a3a4a;
-    --bg-correct: #1a4a2a;
-    --bg-incorrect: #4a1a1a;
-
-    --text-primary: #e8e8e8;
-    --text-secondary: #b0b8c4;
-    --text-header: #e8e8e8;
-    --text-muted: #7a8a9a;
-    --text-correct: #a3d9b1;
-    --text-incorrect: #f5a0a0;
-
-    --border-primary: #3a4a5a;
-    --border-input: #3a4a5a;
-    --border-card: #2a3a4a;
-
-    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-header: 0 2px 10px rgba(0, 0, 0, 0.4);
-}
-
-/* ============================================================
-   Base Reset and Typography
-   ============================================================ */
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    font-family: var(--font-family);
-    font-size: var(--font-size-base);
-    line-height: 1.6;
-    color: var(--text-primary);
-    background-color: var(--bg-primary);
-    transition: background-color var(--transition-normal), color var(--transition-normal);
-    min-height: 100vh;
-}
-
-/* ============================================================
-   Header - Sticky Navigation Bar
-   ============================================================ */
-.header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background-color: var(--bg-header);
-    color: var(--text-header);
-    padding: 12px 24px;
-    box-shadow: var(--shadow-header);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    transition: background-color var(--transition-normal);
-}
-
-.header__title {
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-.header__controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.header__timer {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    background: rgba(255,255,255,0.1);
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    min-width: 80px;
-    text-align: center;
-}
-
-.header__score {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    background: rgba(39,174,96,0.2);
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    color: #a3d9b1;
-}
-
-.header__lang-switcher {
-    display: flex;
-    gap: 4px;
-}
-
-.header__lang-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: var(--text-header);
-    padding: 4px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    transition: all var(--transition-fast);
-}
-
-.header__lang-btn:hover,
-.header__lang-btn--active {
-    background: rgba(255,255,255,0.25);
-    border-color: rgba(255,255,255,0.5);
-}
-
-.header__dark-toggle {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: var(--text-header);
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    transition: all var(--transition-fast);
-}
-
-.header__dark-toggle:hover {
-    background: rgba(255,255,255,0.25);
-}
-
-.header__reset-btn {
-    background: rgba(231,76,60,0.2);
-    border: 1px solid rgba(231,76,60,0.4);
-    color: #f5a0a0;
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    transition: all var(--transition-fast);
-}
-
-.header__reset-btn:hover {
-    background: rgba(231,76,60,0.4);
-}
-
-/* ============================================================
-   Layout - Main Content Area
-   ============================================================ */
-.main {
-    display: flex;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 24px;
-    gap: 24px;
-    min-height: calc(100vh - 120px);
-}
-
-.sidebar {
-    width: 280px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 80px;
-    height: fit-content;
-    max-height: calc(100vh - 100px);
-    overflow-y: auto;
-}
-
-.sidebar__card {
-    background: var(--bg-sidebar);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    border: 1px solid var(--border-card);
-    padding: 16px;
-    transition: all var(--transition-normal);
-}
-
-.sidebar__title {
-    font-size: var(--font-size-sm);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-primary);
-}
-
-.sidebar__nav {
-    list-style: none;
-}
-
-.sidebar__nav-item {
-    padding: 10px 14px;
-    margin-bottom: 4px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.sidebar__nav-item:hover {
-    background: var(--bg-table-hover);
-    color: var(--text-primary);
-}
-
-.sidebar__nav-item--active {
-    background: var(--bg-btn-primary);
-    color: var(--text-btn);
-    font-weight: 600;
-}
-
-.sidebar__nav-item--active:hover {
-    background: var(--bg-btn-primary-hover);
-    color: var(--text-btn);
-}
-
-.sidebar__nav-item-icon {
-    width: 20px;
-    text-align: center;
-}
-
-.sidebar__progress {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-primary);
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background: var(--bg-progress);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 8px;
-}
-
-.progress-bar__fill {
-    height: 100%;
-    background: var(--bg-progress-fill);
-    border-radius: 4px;
-    transition: width var(--transition-normal);
-}
-
-.progress-text {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-    margin-top: 4px;
-}
-
-/* ============================================================
-   Content Area - Task Display
-   ============================================================ */
-.content {
-    flex: 1;
-    min-width: 0;
-}
-
-.task-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-card);
-    border: 1px solid var(--border-card);
-    padding: 32px;
-    transition: all var(--transition-normal);
-    animation: fadeIn var(--transition-slow);
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.task-card__title {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-}
-
-.task-card__description {
-    font-size: var(--font-size-base);
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-    line-height: 1.7;
-}
-
-/* ============================================================
-   Tables - Data Display
-   ============================================================ */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 16px 0;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-
-.data-table th {
-    background: var(--bg-table-header);
-    color: var(--text-table-header);
-    padding: 12px 16px;
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    text-align: center;
-    letter-spacing: 0.02em;
-}
-
-.data-table td {
-    background: var(--bg-table-row);
-    padding: 10px 16px;
-    text-align: center;
-    font-size: var(--font-size-sm);
-    border-bottom: 1px solid var(--border-primary);
-    transition: background var(--transition-fast);
-}
-
-.data-table tr:nth-child(even) td {
-    background: var(--bg-table-row-alt);
-}
-
-.data-table tr:hover td {
-    background: var(--bg-table-hover);
-}
-
-/* ============================================================
-   Input Fields
-   ============================================================ */
-.input-group {
-    margin: 16px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-}
-
-.input-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 180px;
-}
-
-.input-field__label {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.input-field__input {
-    padding: 10px 14px;
-    border: 2px solid var(--border-input);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-    font-family: var(--font-family);
-    background: var(--bg-input);
-    color: var(--text-primary);
-    transition: all var(--transition-fast);
-    outline: none;
-}
-
-.input-field__input:focus {
-    border-color: var(--border-input-focus);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
-}
-
-.input-field__input--correct {
-    border-color: #27ae60;
-    background: var(--bg-correct);
-    color: var(--text-correct);
-}
-
-.input-field__input--incorrect {
-    border-color: #e74c3c;
-    background: var(--bg-incorrect);
-    color: var(--text-incorrect);
-}
-
-/* ============================================================
-   Buttons
-   ============================================================ */
-.btn-group {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    flex-wrap: wrap;
-}
-
-.btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    font-family: var(--font-family);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    box-shadow: var(--shadow-btn);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn--primary {
-    background: var(--bg-btn-primary);
-    color: var(--text-btn);
-}
-
-.btn--primary:hover {
-    background: var(--bg-btn-primary-hover);
-}
-
-.btn--success {
-    background: var(--bg-btn-success);
-    color: var(--text-btn);
-}
-
-.btn--success:hover {
-    background: var(--bg-btn-success-hover);
-}
-
-.btn--warning {
-    background: var(--bg-btn-warning);
-    color: var(--text-btn);
-}
-
-.btn--warning:hover {
-    background: var(--bg-btn-warning-hover);
-}
-
-.btn--danger {
-    background: var(--bg-btn-danger);
-    color: var(--text-btn);
-}
-
-.btn--danger:hover {
-    background: var(--bg-btn-danger-hover);
-}
-
-/* ============================================================
-   Solution Display
-   ============================================================ */
-.solution {
-    margin-top: 24px;
-    padding: 24px;
-    background: var(--bg-solution);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-primary);
-    animation: fadeIn var(--transition-normal);
-}
-
-.solution__title {
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--bg-btn-primary);
-}
-
-.solution__step {
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    background: var(--bg-card);
-    border-radius: var(--radius-md);
-    border-left: 4px solid var(--bg-btn-primary);
-}
-
-.solution__step-title {
-    font-size: var(--font-size-sm);
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
-.solution__step-formula {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin: 4px 0;
-    padding: 4px 8px;
-    background: var(--bg-primary);
-    border-radius: var(--radius-sm);
-    display: inline-block;
-}
-
-.solution__step-result {
-    font-weight: 600;
-    color: var(--bg-btn-primary);
-    margin-top: 4px;
-}
-
-/* ============================================================
-   Footer
-   ============================================================ */
-.footer {
-    text-align: center;
-    padding: 24px;
-    color: var(--text-muted);
-    font-size: var(--font-size-sm);
-    border-top: 1px solid var(--border-primary);
-    margin-top: 40px;
-}
-
-/* ============================================================
-   Responsive Design
-   ============================================================ */
-@media (max-width: 1024px) {
-    .main {
-        flex-direction: column;
-        padding: 16px;
-    }
-
-    .sidebar {
-        width: 100%;
-        position: static;
-        max-height: none;
-    }
-
-    .sidebar__nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    .sidebar__nav-item {
-        flex: 0 0 auto;
-    }
-}
-
-@media (max-width: 768px) {
-    .header {
-        padding: 10px 16px;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .header__controls {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .task-card {
-        padding: 20px;
-    }
-
-    .input-group {
-        flex-direction: column;
-    }
-
-    .input-field {
-        min-width: 100%;
-    }
-
-    .btn-group {
-        flex-direction: column;
-    }
-
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .header__title {
-        font-size: var(--font-size-base);
-    }
-
-    .task-card__title {
-        font-size: var(--font-size-xl);
-    }
-}
-
-/* ============================================================
-   Utility and Animation Classes
-   ============================================================ */
-.hidden {
-    display: none !important;
-}
-
-.text-center {
-    text-align: center;
-}
-
-@keyframes slideDown {
-    from { opacity: 0; max-height: 0; }
-    to { opacity: 1; max-height: 2000px; }
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.animate-pulse {
-    animation: pulse 0.3s ease;
-}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interaktiv Test Tizimi</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+:root{
+  --bg:#f7fafc; --card:#fff; --border:#e2e8f0; --text:#2d3748; --muted:#718096;
+  --primary:#3182ce; --primary-h:#2b6cb0; --accent:#805ad5; --secondary:#edf2f7;
+  --ok-bg:#f0fff4; --ok-bd:#9ae6b4; --ok-tx:#22543d;
+  --no-bg:#fff5f5; --no-bd:#feb2b2; --no-tx:#742a2a;
+  --pt-bg:#fffaf0; --pt-bd:#fbd38d; --pt-tx:#744210;
+  --sl-bg:#ebf8ff; --sl-bd:#bee3f8; --sl-tx:#2c5282;
+}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);margin:0;padding:20px;color:var(--text);line-height:1.5}
+.quiz-container{background:var(--card);padding:24px 28px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);max-width:880px;margin:0 auto}
+.header{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+h1{margin:0;font-size:22px;color:#1a202c;text-align:center;font-weight:600}
+.subtitle{font-size:13px;color:var(--muted);text-align:center;margin-top:-6px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:8px 14px;font-size:14px;border-radius:6px;cursor:pointer;transition:.15s;font-family:inherit}
+.btn:hover{background:var(--secondary)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-h);border-color:var(--primary-h)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{opacity:.92}
+.btn-block{width:100%;padding:13px;font-size:15px;font-weight:600;margin-top:10px}
+.question-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:18px;transition:.2s}
+.q-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.q-num{font-weight:600;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.q-pts{font-size:12px;color:var(--muted);background:var(--secondary);padding:2px 10px;border-radius:12px}
+.q-text{font-size:15px;line-height:1.65;margin:6px 0 14px}
+.q-text .lang-tag{font-weight:600;color:var(--muted);font-size:12px;display:inline-block;width:34px}
+
+.options-box{margin-top:10px}
+.option{display:flex;align-items:flex-start;margin:7px 0;padding:10px 14px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:.15s;font-size:14px}
+.option:hover{background:var(--secondary)}
+.option input{margin-right:10px;margin-top:3px;flex-shrink:0;cursor:pointer}
+.option span{line-height:1.5}
+.match-table{width:100%;border-collapse:collapse;margin-top:10px}
+.match-table td{padding:10px;border:1px solid var(--border);font-size:14px;vertical-align:middle}
+.match-formula{font-weight:500;width:55%}
+.match-select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:5px;font-size:13px;background:var(--card);font-family:inherit}
+.feedback{margin-top:12px;padding:10px 14px;border-radius:6px;font-size:14px;font-weight:500;display:none}
+.feedback.show{display:block}
+.feedback.correct{background:var(--ok-bg);border:1px solid var(--ok-bd);color:var(--ok-tx)}
+.feedback.wrong{background:var(--no-bg);border:1px solid var(--no-bd);color:var(--no-tx)}
+.feedback.partial{background:var(--pt-bg);border:1px solid var(--pt-bd);color:var(--pt-tx)}
+.correct-card{border-color:var(--ok-bd)}
+.wrong-card{border-color:var(--no-bd)}
+.partial-card{border-color:var(--pt-bd)}
+.solution-toggle{margin-top:10px;font-size:13px;color:var(--sl-tx);background:none;border:1px dashed var(--sl-bd);padding:7px 14px;border-radius:5px;cursor:pointer;font-family:inherit}
+.solution-toggle:hover{background:var(--sl-bg)}
+.solution{display:none;margin-top:10px;padding:16px 18px;background:var(--sl-bg);border-left:3px solid var(--primary);border-radius:0 6px 6px 0;font-size:14.5px;line-height:1.75;font-family:'Segoe UI',Tahoma,sans-serif}
+.solution.show{display:block}
+.solution h4{margin:0 0 10px;color:var(--sl-tx);font-size:14px;text-transform:uppercase;letter-spacing:.5px}
+.solution p{margin:8px 0}
+.solution .step{display:block;margin:10px 0;padding:8px 12px;background:rgba(255,255,255,.65);border-radius:5px;font-size:14.5px}
+.solution .step b{color:var(--primary-h)}
+.solution .ans{display:block;margin-top:12px;padding:10px 14px;background:#fff;border:1px solid var(--ok-bd);border-radius:5px;color:var(--ok-tx);font-weight:600}
+.result-summary{margin-top:24px;padding:18px;border-radius:8px;text-align:center;font-size:18px;font-weight:600;background:var(--sl-bg);border:1px solid var(--sl-bd);color:var(--sl-tx);display:none}
+.result-summary.show{display:block}
+.graphs-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:14px;background:var(--bg);padding:14px;border-radius:6px;border:1px dashed var(--border)}
+.graph-item{text-align:center;background:var(--card);padding:6px;border-radius:4px;border:1px solid var(--border)}
+.graph-label{font-weight:500;font-size:12px;margin-top:4px;color:var(--muted)}
+@media(max-width:600px){body{padding:10px}.quiz-container{padding:16px}.match-table td{padding:8px;font-size:13px}.match-formula{width:48%}}
+</style>
 </head>
 <body>
-    <!-- ============================================================
-         Header Section - Navigation, Timer, Score, Controls
-         ============================================================ -->
-    <header class="header" id="header">
-        <div class="header__title" id="headerTitle">Статистика</div>
-        <div class="header__controls">
-            <div class="header__timer" id="timer">00:00</div>
-            <div class="header__score" id="score">0/0</div>
-            <div class="header__lang-switcher">
-                <button class="header__lang-btn header__lang-btn--active" data-lang="ru" onclick="app.toggleLanguage('ru')">RU</button>
-                <button class="header__lang-btn" data-lang="uz" onclick="app.toggleLanguage('uz')">UZ</button>
-                <button class="header__lang-btn" data-lang="en" onclick="app.toggleLanguage('en')">EN</button>
-            </div>
-            <button class="header__dark-toggle" id="darkToggle" onclick="app.toggleDarkMode()">🌙</button>
-            <button class="header__reset-btn" id="resetBtn" onclick="app.resetProgress()">↺</button>
-        </div>
-    </header>
-
-    <!-- ============================================================
-         Main Content - Sidebar Navigation + Task Area
-         ============================================================ -->
-    <main class="main">
-        <aside class="sidebar">
-            <div class="sidebar__card">
-                <div class="sidebar__title" id="sidebarTitle">Задания</div>
-                <ul class="sidebar__nav" id="taskNav">
-                    <!-- Populated by JavaScript -->
-                </ul>
-                <div class="sidebar__progress">
-                    <div class="progress-bar">
-                        <div class="progress-bar__fill" id="progressFill" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-text" id="progressText">0/13</div>
-                </div>
-            </div>
-        </aside>
-
-        <section class="content" id="taskContent">
-            <!-- Task cards rendered here by JavaScript -->
-        </section>
-    </main>
-
-    <!-- ============================================================
-         Footer
-         ============================================================ -->
-    <footer class="footer" id="footer">
-        <p id="footerText">Платформа тестирования по статистике</p>
-    </footer>
-
-    <script>
-    /* ============================================================
-       I18n Class - Internationalization System
-       ============================================================
-       Manages translations for Russian, Uzbek, and English.
-       All UI text is stored here to enable language switching.
-    */
-    class I18n {
-        constructor() {
-            this.currentLang = 'ru';
-            this.translations = {
-                ru: {
-                    headerTitle: 'Статистика - Тестирование',
-                    sidebarTitle: 'Задания',
-                    footerText: 'Платформа тестирования по математической статистике',
-                    darkMode: '🌙',
-                    lightMode: '☀️',
-                    resetBtn: '↺',
-                    btnCheck: 'Проверить',
-                    btnSolution: 'Решение',
-                    btnNewData: 'Новые данные',
-                    btnShowAnswers: 'Показать ответы',
-                    solutionTitle: 'Пошаговое решение',
-                    correct: 'Верно!',
-                    incorrect: 'Неверно',
-                    scoreLabel: 'Счёт',
-                    timerLabel: 'Время',
-                    progressLabel: 'Прогресс',
-                    step: 'Шаг',
-                    formula: 'Формула',
-                    substitution: 'Подстановка',
-                    result: 'Результат',
-                    givenData: 'Дано',
-                    answer: 'Ответ',
-                    sample: 'Выборка',
-                    sampleSize: 'Объём выборки (n)',
-                    mean: 'Среднее',
-                    variance: 'Дисперсия (исправл.)',
-                    stdDev: 'Стандартное отклонение',
-                    median: 'Медиана',
-                    mode: 'Мода',
-                    range: 'Размах',
-                    min: 'Минимум',
-                    max: 'Максимум',
-                    populationMean: 'Среднее генеральной совокупности',
-                    sigma: 'Сигма (σ)',
-                    alpha: 'Уровень значимости (α)',
-                    confidence: 'Уровень доверия',
-                    zValue: 'Z-статистика',
-                    tValue: 'T-статистика',
-                    criticalValue: 'Критическое значение',
-                    conclusion: 'Вывод',
-                    rejectH0: 'H₀ отвергается',
-                    acceptH0: 'H₀ не отвергается',
-                    lowerBound: 'Нижняя граница',
-                    upperBound: 'Верхняя граница',
-                    proportion: 'Доля (p)',
-                    successes: 'Число успехов',
-                    trials: 'Число испытаний',
-                    relFreq: 'Относительная частота',
-                    cumFreq: 'Накопленная частота',
-                    value: 'Значение',
-                    frequency: 'Частота',
-                    interval: 'Интервал',
-                    intervalFreq: 'Частота интервала',
-                    solveIntervalWidth: 'Ширина интервала',
-                    solveCountValues: 'Подсчёт значений в интервале',
-                    solveValuesIn: 'Значения в',
-                    solveSortSample: 'Сортировка выборки',
-                    solveArrangeAscending: 'Расположить значения по возрастанию',
-                    tasks: {
-                        sampleCharacteristics: 'Характеристики выборки',
-                        empiricalDistribution: 'Эмпирическая функция распределения',
-                        histogram: 'Гистограмма относительных частот',
-                        confidenceMean: 'Доверительный интервал для среднего',
-                        confidenceProportion: 'Доверительный интервал для доли',
-                        hypothesisTesting: 'Проверка гипотез',
-                        zTest: 'Z-тест',
-                        tTest: 'T-тест Стьюдента',
-                        variance: 'Вычисление дисперсии',
-                        stdDeviation: 'Стандартное отклонение',
-                        medianCalc: 'Вычисление медианы',
-                        modeCalc: 'Вычисление моды',
-                        intervalSeries: 'Интервальный ряд'
-                    },
-                    taskDescriptions: {
-                        sampleCharacteristics: 'Вычислите все основные характеристики выборки: среднее, дисперсию, стандартное отклонение, медиану, моду, размах, минимум, максимум.',
-                        empiricalDistribution: 'Постройте эмпирическую функцию распределения для данной выборки. Найдите относительные и накопленные частоты.',
-                        histogram: 'Вычислите относительные частоты для построения гистограммы. Определите частоту каждого интервала.',
-                        confidenceMean: 'Найдите доверительный интервал для математического ожидания при заданном уровне доверия.',
-                        confidenceProportion: 'Найдите доверительный интервал для доли (пропорции) при заданном уровне доверия.',
-                        hypothesisTesting: 'Проверьте гипотезу о значении среднего генеральной совокупности. Вычислите статистику и сделайте вывод.',
-                        zTest: 'Выполните Z-тест для проверки гипотезы о среднем при известной дисперсии генеральной совокупности.',
-                        tTest: 'Выполните t-тест Стьюдента для проверки гипотезы о среднем при неизвестной дисперсии.',
-                        variance: 'Вычислите исправленную (выборочную) дисперсию данной выборки.',
-                        stdDeviation: 'Вычислите стандартное отклонение (среднеквадратическое отклонение) выборки.',
-                        medianCalc: 'Найдите медиану данной выборки.',
-                        modeCalc: 'Найдите моду данной выборки.',
-                        intervalSeries: 'Постройте интервальный вариационный ряд и вычислите частоты для каждого интервала.'
-                    }
-                },
-                uz: {
-                    headerTitle: 'Statistika - Test',
-                    sidebarTitle: 'Topshiriqlar',
-                    footerText: 'Matematik statistika bo\'yicha test platformasi',
-                    darkMode: '🌙',
-                    lightMode: '☀️',
-                    resetBtn: '↺',
-                    btnCheck: 'Tekshirish',
-                    btnSolution: 'Yechim',
-                    btnNewData: 'Yangi ma\'lumot',
-                    btnShowAnswers: 'Javoblarni ko\'rsatish',
-                    solutionTitle: 'Bosqichma-bosqich yechim',
-                    correct: 'To\'g\'ri!',
-                    incorrect: 'Noto\'g\'ri',
-                    scoreLabel: 'Ball',
-                    timerLabel: 'Vaqt',
-                    progressLabel: 'Progress',
-                    step: 'Qadam',
-                    formula: 'Formula',
-                    substitution: 'Qo\'yish',
-                    result: 'Natija',
-                    givenData: 'Berilgan',
-                    answer: 'Javob',
-                    sample: 'Tanlama',
-                    sampleSize: 'Tanlama hajmi (n)',
-                    mean: 'O\'rtacha',
-                    variance: 'Dispersiya (tuzatilgan)',
-                    stdDev: 'Standart og\'ish',
-                    median: 'Mediana',
-                    mode: 'Moda',
-                    range: 'Tebranish',
-                    min: 'Minimum',
-                    max: 'Maksimum',
-                    populationMean: 'Umumiy o\'rtacha',
-                    sigma: 'Sigma (σ)',
-                    alpha: 'Ahamiyat darajasi (α)',
-                    confidence: 'Ishonch darajasi',
-                    zValue: 'Z-statistika',
-                    tValue: 'T-statistika',
-                    criticalValue: 'Kritik qiymat',
-                    conclusion: 'Xulosa',
-                    rejectH0: 'H₀ rad etiladi',
-                    acceptH0: 'H₀ rad etilmaydi',
-                    lowerBound: 'Pastki chegara',
-                    upperBound: 'Yuqori chegara',
-                    proportion: 'Ulush (p)',
-                    successes: 'Muvaffaqiyatlar soni',
-                    trials: 'Sinovlar soni',
-                    relFreq: 'Nisbiy chastota',
-                    cumFreq: 'Yig\'ilma chastota',
-                    value: 'Qiymat',
-                    frequency: 'Chastota',
-                    interval: 'Interval',
-                    intervalFreq: 'Interval chastotasi',
-                    solveIntervalWidth: 'Interval kengligi',
-                    solveCountValues: 'Intervaldagi qiymatlarni hisoblash',
-                    solveValuesIn: 'Qiymatlar',
-                    solveSortSample: 'Tanlamani saralash',
-                    solveArrangeAscending: 'Qiymatlarni o\'sish tartibida joylashtirish',
-                    tasks: {
-                        sampleCharacteristics: 'Tanlama xarakteristikalari',
-                        empiricalDistribution: 'Empirik taqsimot funksiyasi',
-                        histogram: 'Nisbiy chastotalar gistogrammasi',
-                        confidenceMean: 'O\'rtacha uchun ishonch intervali',
-                        confidenceProportion: 'Ulush uchun ishonch intervali',
-                        hypothesisTesting: 'Gipotezalarni tekshirish',
-                        zTest: 'Z-test',
-                        tTest: 'Student t-testi',
-                        variance: 'Dispersiya hisoblash',
-                        stdDeviation: 'Standart og\'ish',
-                        medianCalc: 'Mediana hisoblash',
-                        modeCalc: 'Moda hisoblash',
-                        intervalSeries: 'Intervalli qator'
-                    },
-                    taskDescriptions: {
-                        sampleCharacteristics: 'Tanlama xarakteristikalarini hisoblang: o\'rtacha, dispersiya, standart og\'ish, mediana, moda, tebranish, minimum, maksimum.',
-                        empiricalDistribution: 'Berilgan tanlama uchun empirik taqsimot funksiyasini tuzing. Nisbiy va yig\'ilma chastotalarni toping.',
-                        histogram: 'Gistogramma qurish uchun nisbiy chastotalarni hisoblang. Har bir interval chastotasini aniqlang.',
-                        confidenceMean: 'Berilgan ishonch darajasida matematik kutilma uchun ishonch intervalini toping.',
-                        confidenceProportion: 'Berilgan ishonch darajasida ulush uchun ishonch intervalini toping.',
-                        hypothesisTesting: 'Umumiy o\'rtacha haqidagi gipotezani tekshiring. Statistikani hisoblang va xulosa qiling.',
-                        zTest: 'Ma\'lum dispersiyada o\'rtacha haqidagi gipotezani tekshirish uchun Z-testni bajaring.',
-                        tTest: 'Noma\'lum dispersiyada o\'rtacha haqidagi gipotezani tekshirish uchun Student t-testini bajaring.',
-                        variance: 'Berilgan tanlama uchun tuzatilgan dispersiyani hisoblang.',
-                        stdDeviation: 'Tanlama uchun standart og\'ishni hisoblang.',
-                        medianCalc: 'Berilgan tanlama medianasini toping.',
-                        modeCalc: 'Berilgan tanlama modasini toping.',
-                        intervalSeries: 'Intervalli variatsion qatorni tuzing va har bir interval uchun chastotalarni hisoblang.'
-                    }
-                },
-                en: {
-                    headerTitle: 'Statistics - Testing',
-                    sidebarTitle: 'Tasks',
-                    footerText: 'Mathematical Statistics Testing Platform',
-                    darkMode: '🌙',
-                    lightMode: '☀️',
-                    resetBtn: '↺',
-                    btnCheck: 'Check',
-                    btnSolution: 'Solution',
-                    btnNewData: 'New Data',
-                    btnShowAnswers: 'Show Answers',
-                    solutionTitle: 'Step-by-Step Solution',
-                    correct: 'Correct!',
-                    incorrect: 'Incorrect',
-                    scoreLabel: 'Score',
-                    timerLabel: 'Time',
-                    progressLabel: 'Progress',
-                    step: 'Step',
-                    formula: 'Formula',
-                    substitution: 'Substitution',
-                    result: 'Result',
-                    givenData: 'Given',
-                    answer: 'Answer',
-                    sample: 'Sample',
-                    sampleSize: 'Sample size (n)',
-                    mean: 'Mean',
-                    variance: 'Variance (corrected)',
-                    stdDev: 'Standard Deviation',
-                    median: 'Median',
-                    mode: 'Mode',
-                    range: 'Range',
-                    min: 'Minimum',
-                    max: 'Maximum',
-                    populationMean: 'Population Mean',
-                    sigma: 'Sigma (σ)',
-                    alpha: 'Significance Level (α)',
-                    confidence: 'Confidence Level',
-                    zValue: 'Z-statistic',
-                    tValue: 'T-statistic',
-                    criticalValue: 'Critical Value',
-                    conclusion: 'Conclusion',
-                    rejectH0: 'H₀ is rejected',
-                    acceptH0: 'H₀ is not rejected',
-                    lowerBound: 'Lower Bound',
-                    upperBound: 'Upper Bound',
-                    proportion: 'Proportion (p)',
-                    successes: 'Number of successes',
-                    trials: 'Number of trials',
-                    relFreq: 'Relative Frequency',
-                    cumFreq: 'Cumulative Frequency',
-                    value: 'Value',
-                    frequency: 'Frequency',
-                    interval: 'Interval',
-                    intervalFreq: 'Interval Frequency',
-                    solveIntervalWidth: 'Interval width',
-                    solveCountValues: 'Count values in interval',
-                    solveValuesIn: 'Values in',
-                    solveSortSample: 'Sort the sample',
-                    solveArrangeAscending: 'Arrange values in ascending order',
-                    tasks: {
-                        sampleCharacteristics: 'Sample Characteristics',
-                        empiricalDistribution: 'Empirical Distribution Function',
-                        histogram: 'Relative Frequency Histogram',
-                        confidenceMean: 'Confidence Interval for Mean',
-                        confidenceProportion: 'Confidence Interval for Proportion',
-                        hypothesisTesting: 'Hypothesis Testing',
-                        zTest: 'Z-test',
-                        tTest: 'Student\'s t-test',
-                        variance: 'Variance Calculation',
-                        stdDeviation: 'Standard Deviation',
-                        medianCalc: 'Median Calculation',
-                        modeCalc: 'Mode Calculation',
-                        intervalSeries: 'Interval Series'
-                    },
-                    taskDescriptions: {
-                        sampleCharacteristics: 'Calculate all main sample characteristics: mean, variance, standard deviation, median, mode, range, minimum, maximum.',
-                        empiricalDistribution: 'Build the empirical distribution function for the given sample. Find relative and cumulative frequencies.',
-                        histogram: 'Calculate relative frequencies for histogram construction. Determine the frequency for each interval.',
-                        confidenceMean: 'Find the confidence interval for the mathematical expectation at the given confidence level.',
-                        confidenceProportion: 'Find the confidence interval for the proportion at the given confidence level.',
-                        hypothesisTesting: 'Test the hypothesis about the population mean. Calculate the test statistic and make a conclusion.',
-                        zTest: 'Perform a Z-test to test the hypothesis about the mean with known population variance.',
-                        tTest: 'Perform Student\'s t-test to test the hypothesis about the mean with unknown variance.',
-                        variance: 'Calculate the corrected (sample) variance of the given sample.',
-                        stdDeviation: 'Calculate the standard deviation of the sample.',
-                        medianCalc: 'Find the median of the given sample.',
-                        modeCalc: 'Find the mode of the given sample.',
-                        intervalSeries: 'Build an interval variation series and calculate frequencies for each interval.'
-                    }
-                }
-            };
-        }
-
-        /**
-         * Get translated string for current language
-         * Supports dot notation for nested keys (e.g., 'tasks.zTest')
-         */
-        t(key) {
-            const keys = key.split('.');
-            let value = this.translations[this.currentLang];
-            for (const k of keys) {
-                if (value && typeof value === 'object') {
-                    value = value[k];
-                } else {
-                    return key; // Fallback to key if translation not found
-                }
-            }
-            return value || key;
-        }
-
-        /**
-         * Switch the current language and trigger UI re-render
-         */
-        setLanguage(lang) {
-            if (this.translations[lang]) {
-                this.currentLang = lang;
-            }
-        }
-    }
-
-    /* ============================================================
-       MathEngine Class - Statistical Calculations
-       ============================================================
-       Contains all statistical formulas used in the platform.
-       All methods round to 3 decimal places and handle edge cases.
-       Uses corrected (n-1) denominator for variance as required.
-    */
-    class MathEngine {
-        /**
-         * Calculate the sample mean (arithmetic average)
-         * Formula: x_bar = (1/n) * sum(xi)
-         */
-        sampleMean(data) {
-            if (!data || data.length === 0) return 0;
-            const sum = data.reduce((a, b) => a + b, 0);
-            return this.round(sum / data.length);
-        }
-
-        /**
-         * Calculate the corrected (sample) variance
-         * Formula: S^2 = sum((xi - x_bar)^2) / (n - 1)
-         * Uses Bessel's correction (n-1) for unbiased estimation
-         */
-        correctedVariance(data) {
-            if (!data || data.length < 2) return 0;
-            const mean = data.reduce((a, b) => a + b, 0) / data.length;
-            const sumSquaredDiff = data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0);
-            return this.round(sumSquaredDiff / (data.length - 1));
-        }
-
-        /**
-         * Calculate standard deviation (square root of corrected variance)
-         * Formula: S = sqrt(S^2)
-         */
-        standardDeviation(data) {
-            if (!data || data.length < 2) return 0;
-            const mean = data.reduce((a, b) => a + b, 0) / data.length;
-            const sumSquaredDiff = data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0);
-            const variance = sumSquaredDiff / (data.length - 1);
-            return this.round(Math.sqrt(variance));
-        }
-
-        /**
-         * Calculate the median (middle value of sorted data)
-         * For even n: average of two middle values
-         * For odd n: the middle value
-         */
-        median(data) {
-            if (!data || data.length === 0) return 0;
-            const sorted = [...data].sort((a, b) => a - b);
-            const mid = Math.floor(sorted.length / 2);
-            if (sorted.length % 2 === 0) {
-                return this.round((sorted[mid - 1] + sorted[mid]) / 2);
-            }
-            return this.round(sorted[mid]);
-        }
-
-        /**
-         * Calculate the mode (most frequent value(s))
-         * Returns an array of modes if multiple values have the same highest frequency
-         */
-        mode(data) {
-            if (!data || data.length === 0) return [0];
-            const freq = {};
-            data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-            const maxFreq = Math.max(...Object.values(freq));
-            if (maxFreq === 1) return []; // No mode if all values appear once
-            const modes = Object.keys(freq)
-                .filter(k => freq[k] === maxFreq)
-                .map(Number)
-                .sort((a, b) => a - b);
-            return modes;
-        }
-
-        /**
-         * Calculate the range (max - min)
-         */
-        range(data) {
-            if (!data || data.length === 0) return 0;
-            return this.round(Math.max(...data) - Math.min(...data));
-        }
-
-        /**
-         * Calculate relative frequencies for each unique value
-         * Formula: w_i = n_i / n (frequency of value / total count)
-         */
-        relativeFrequencies(data) {
-            if (!data || data.length === 0) return {};
-            const freq = {};
-            data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-            const result = {};
-            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
-            sortedKeys.forEach(k => {
-                result[k] = this.round(freq[k] / data.length);
-            });
-            return result;
-        }
-
-        /**
-         * Calculate the empirical distribution function (EDF)
-         * F(x) = cumulative sum of relative frequencies up to and including x
-         */
-        empiricalDistributionFunction(data) {
-            if (!data || data.length === 0) return {};
-            const freq = {};
-            data.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
-            const result = {};
-            let cumulative = 0;
-            sortedKeys.forEach(k => {
-                cumulative += freq[k] / data.length;
-                result[k] = this.round(cumulative);
-            });
-            return result;
-        }
-
-        /**
-         * Confidence interval for the population mean
-         * Formula: x_bar +/- t(alpha/2, n-1) * S / sqrt(n)
-         * Uses t-distribution quantile for small samples
-         */
-        confidenceIntervalMean(data, confidence) {
-            if (!data || data.length < 2) return { lower: 0, upper: 0 };
-            const n = data.length;
-            const mean = data.reduce((a, b) => a + b, 0) / n;
-            const s = Math.sqrt(data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0) / (n - 1));
-            const df = n - 1;
-            const t = this.tQuantile(confidence, df);
-            const margin = t * s / Math.sqrt(n);
-            return {
-                lower: this.round(mean - margin),
-                upper: this.round(mean + margin),
-                mean: this.round(mean),
-                margin: this.round(margin),
-                t: this.round(t),
-                s: this.round(s)
-            };
-        }
-
-        /**
-         * Confidence interval for a proportion
-         * Formula: p_hat +/- z(alpha/2) * sqrt(p_hat * (1 - p_hat) / n)
-         */
-        confidenceIntervalProportion(p, n, confidence) {
-            if (n <= 0 || p < 0 || p > 1) return { lower: 0, upper: 0 };
-            const z = this.normalQuantile(confidence);
-            const margin = z * Math.sqrt(p * (1 - p) / n);
-            return {
-                lower: this.round(Math.max(0, p - margin)),
-                upper: this.round(Math.min(1, p + margin)),
-                p: this.round(p),
-                margin: this.round(margin),
-                z: this.round(z)
-            };
-        }
-
-        /**
-         * Z-test for hypothesis testing (known population variance)
-         * Formula: z = (x_bar - mu_0) / (sigma / sqrt(n))
-         * H0: mu = mu_0
-         */
-        zTest(sampleMean, populationMean, sigma, n) {
-            if (sigma <= 0 || n <= 0) return { z: 0, reject: false };
-            const z = (sampleMean - populationMean) / (sigma / Math.sqrt(n));
-            return this.round(z);
-        }
-
-        /**
-         * Student's t-test for hypothesis testing (unknown population variance)
-         * Formula: t = (x_bar - mu_0) / (S / sqrt(n))
-         * H0: mu = mu_0
-         */
-        tTest(sampleMean, populationMean, s, n) {
-            if (s <= 0 || n <= 0) return 0;
-            const t = (sampleMean - populationMean) / (s / Math.sqrt(n));
-            return this.round(t);
-        }
-
-        /**
-         * Normal distribution quantile approximation
-         * Uses the Abramowitz and Stegun rational approximation (formula 26.2.23)
-         * for the inverse of the standard normal CDF.
-         * Input: confidence level (e.g., 0.95)
-         * Output: z value such that P(-z < Z < z) = confidence
-         */
-        normalQuantile(confidence) {
-            // We need z such that P(Z < z) = (1 + confidence) / 2
-            const p = (1 + confidence) / 2;
-
-            // Rational approximation for inverse normal CDF (Abramowitz & Stegun)
-            // For p > 0.5, use the transformation
-            const t = Math.sqrt(-2 * Math.log(1 - p));
-
-            // Coefficients for the rational approximation
-            const c0 = 2.515517;
-            const c1 = 0.802853;
-            const c2 = 0.010328;
-            const d1 = 1.432788;
-            const d2 = 0.189269;
-            const d3 = 0.001308;
-
-            const z = t - (c0 + c1 * t + c2 * t * t) / (1 + d1 * t + d2 * t * t + d3 * t * t * t);
-            return this.round(z);
-        }
-
-        /**
-         * t-distribution quantile approximation
-         * Uses a lookup table for degrees of freedom 1-30 at common confidence levels
-         * and an approximation formula for larger df.
-         * Input: confidence level and degrees of freedom
-         * Output: t value for two-tailed test
-         */
-        tQuantile(confidence, df) {
-            // Lookup table for t-distribution critical values (two-tailed)
-            // Format: tTable[df][confidence] = t-value
-            const tTable = {
-                1:  {0.90: 6.314, 0.95: 12.706, 0.99: 63.657},
-                2:  {0.90: 2.920, 0.95: 4.303, 0.99: 9.925},
-                3:  {0.90: 2.353, 0.95: 3.182, 0.99: 5.841},
-                4:  {0.90: 2.132, 0.95: 2.776, 0.99: 4.604},
-                5:  {0.90: 2.015, 0.95: 2.571, 0.99: 4.032},
-                6:  {0.90: 1.943, 0.95: 2.447, 0.99: 3.707},
-                7:  {0.90: 1.895, 0.95: 2.365, 0.99: 3.499},
-                8:  {0.90: 1.860, 0.95: 2.306, 0.99: 3.355},
-                9:  {0.90: 1.833, 0.95: 2.262, 0.99: 3.250},
-                10: {0.90: 1.812, 0.95: 2.228, 0.99: 3.169},
-                11: {0.90: 1.796, 0.95: 2.201, 0.99: 3.106},
-                12: {0.90: 1.782, 0.95: 2.179, 0.99: 3.055},
-                13: {0.90: 1.771, 0.95: 2.160, 0.99: 3.012},
-                14: {0.90: 1.761, 0.95: 2.145, 0.99: 2.977},
-                15: {0.90: 1.753, 0.95: 2.131, 0.99: 2.947},
-                16: {0.90: 1.746, 0.95: 2.120, 0.99: 2.921},
-                17: {0.90: 1.740, 0.95: 2.110, 0.99: 2.898},
-                18: {0.90: 1.734, 0.95: 2.101, 0.99: 2.878},
-                19: {0.90: 1.729, 0.95: 2.093, 0.99: 2.861},
-                20: {0.90: 1.725, 0.95: 2.086, 0.99: 2.845},
-                21: {0.90: 1.721, 0.95: 2.080, 0.99: 2.831},
-                22: {0.90: 1.717, 0.95: 2.074, 0.99: 2.819},
-                23: {0.90: 1.714, 0.95: 2.069, 0.99: 2.807},
-                24: {0.90: 1.711, 0.95: 2.064, 0.99: 2.797},
-                25: {0.90: 1.708, 0.95: 2.060, 0.99: 2.787},
-                26: {0.90: 1.706, 0.95: 2.056, 0.99: 2.779},
-                27: {0.90: 1.703, 0.95: 2.052, 0.99: 2.771},
-                28: {0.90: 1.701, 0.95: 2.048, 0.99: 2.763},
-                29: {0.90: 1.699, 0.95: 2.045, 0.99: 2.756},
-                30: {0.90: 1.697, 0.95: 2.042, 0.99: 2.750}
-            };
-
-            // Clamp df to valid range
-            const clampedDf = Math.min(Math.max(Math.round(df), 1), 30);
-
-            // Find the closest confidence level
-            const confLevels = [0.90, 0.95, 0.99];
-            let closestConf = confLevels[0];
-            let minDiff = Math.abs(confidence - confLevels[0]);
-            for (const cl of confLevels) {
-                const diff = Math.abs(confidence - cl);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    closestConf = cl;
-                }
-            }
-
-            if (clampedDf <= 30) {
-                return tTable[clampedDf][closestConf];
-            }
-
-            // For df > 30, approximate using normal distribution
-            return this.normalQuantile(confidence);
-        }
-
-        /**
-         * Round a number to 3 decimal places
-         * Handles edge cases (NaN, Infinity) by returning 0
-         */
-        round(value) {
-            if (!isFinite(value) || isNaN(value)) return 0;
-            return Math.round(value * 1000) / 1000;
-        }
-    }
-
-    /* ============================================================
-       DataGenerator Class - Random Data Generation
-       ============================================================
-       Generates realistic random data for each task type.
-       Uses appropriate ranges: sample sizes 8-30, values 1-100,
-       confidence levels 0.90/0.95/0.99.
-    */
-    class DataGenerator {
-        /**
-         * Generate an array of random integers within [min, max]
-         */
-        generateSampleData(n, min, max) {
-            const data = [];
-            for (let i = 0; i < n; i++) {
-                data.push(Math.floor(Math.random() * (max - min + 1)) + min);
-            }
-            return data;
-        }
-
-        /**
-         * Generate normally distributed values using Box-Muller transform
-         * Returns an array of n values with approximately the given mean and std
-         */
-        generateNormalSample(n, mean, std) {
-            const data = [];
-            for (let i = 0; i < n; i++) {
-                let u1 = Math.random();
-                let u2 = Math.random();
-                // Avoid log(0)
-                while (u1 === 0) u1 = Math.random();
-                const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-                data.push(Math.round((mean + z * std) * 10) / 10);
-            }
-            return data;
-        }
-
-        /**
-         * Generate data for hypothesis testing task
-         */
-        generateHypothesisTestData() {
-            const n = this.randomInt(10, 25);
-            const populationMean = this.randomInt(40, 80);
-            const sigma = this.randomInt(3, 12);
-            const alpha = this.pickRandom([0.01, 0.05, 0.10]);
-            // Generate sample that may or may not differ from population mean
-            const shift = (Math.random() > 0.5) ? this.randomInt(-5, 5) : 0;
-            const sample = this.generateNormalSample(n, populationMean + shift, sigma);
-            return { sample, populationMean, sigma, alpha };
-        }
-
-        /**
-         * Generate data for confidence interval for mean
-         */
-        generateConfidenceIntervalMeanData() {
-            const n = this.randomInt(10, 25);
-            const confidence = this.pickRandom([0.90, 0.95, 0.99]);
-            const mean = this.randomInt(30, 70);
-            const std = this.randomInt(5, 15);
-            const sample = this.generateNormalSample(n, mean, std);
-            return { sample, confidence };
-        }
-
-        /**
-         * Generate data for confidence interval for proportion
-         */
-        generateConfidenceIntervalProportionData() {
-            const n = this.randomInt(50, 200);
-            const trueP = (this.randomInt(20, 80)) / 100;
-            const successes = Math.round(n * trueP);
-            const confidence = this.pickRandom([0.90, 0.95, 0.99]);
-            return { successes, n, confidence };
-        }
-
-        /**
-         * Generate data for empirical distribution function
-         * Uses repeated values to make the distribution interesting
-         */
-        generateEmpiricalDistributionData() {
-            const n = this.randomInt(15, 25);
-            const min = this.randomInt(1, 5);
-            const max = min + this.randomInt(5, 10);
-            const sample = this.generateSampleData(n, min, max);
-            return { sample };
-        }
-
-        /**
-         * Generate data for histogram (interval-based frequencies)
-         */
-        generateHistogramData() {
-            const n = this.randomInt(20, 30);
-            const sample = this.generateSampleData(n, 10, 80);
-            const intervalCount = this.randomInt(4, 7);
-            return { sample, intervalCount };
-        }
-
-        /**
-         * Generate data for sample characteristics
-         */
-        generateSampleCharacteristicsData() {
-            const n = this.randomInt(10, 20);
-            const sample = this.generateSampleData(n, 5, 50);
-            return { sample };
-        }
-
-        /**
-         * Generate data for Z-test
-         */
-        generateZTestData() {
-            const n = this.randomInt(15, 30);
-            const populationMean = this.randomInt(40, 80);
-            const sigma = this.randomInt(4, 12);
-            const alpha = this.pickRandom([0.01, 0.05, 0.10]);
-            const shift = (Math.random() > 0.5) ? this.randomInt(-4, 4) : 0;
-            const sample = this.generateNormalSample(n, populationMean + shift, sigma);
-            return { sample, populationMean, sigma, alpha };
-        }
-
-        /**
-         * Generate data for Student's t-test
-         */
-        generateTTestData() {
-            const n = this.randomInt(10, 25);
-            const populationMean = this.randomInt(30, 70);
-            const std = this.randomInt(5, 15);
-            const alpha = this.pickRandom([0.01, 0.05, 0.10]);
-            const shift = (Math.random() > 0.5) ? this.randomInt(-5, 5) : 0;
-            const sample = this.generateNormalSample(n, populationMean + shift, std);
-            return { sample, populationMean, alpha };
-        }
-
-        /**
-         * Generate data for variance calculation
-         */
-        generateVarianceData() {
-            const n = this.randomInt(8, 18);
-            const sample = this.generateSampleData(n, 10, 60);
-            return { sample };
-        }
-
-        /**
-         * Generate data for standard deviation calculation
-         */
-        generateStdDevData() {
-            const n = this.randomInt(8, 18);
-            const sample = this.generateSampleData(n, 10, 60);
-            return { sample };
-        }
-
-        /**
-         * Generate data for median calculation
-         */
-        generateMedianData() {
-            const n = this.randomInt(9, 20);
-            const sample = this.generateSampleData(n, 5, 50);
-            return { sample };
-        }
-
-        /**
-         * Generate data for mode calculation
-         * Ensures there is a clear mode by repeating some values
-         */
-        generateModeData() {
-            const n = this.randomInt(12, 20);
-            const base = this.generateSampleData(n - 4, 5, 30);
-            // Add repeated values to ensure a clear mode
-            const modeValue = this.pickRandom(base);
-            for (let i = 0; i < 4; i++) {
-                base.push(modeValue);
-            }
-            // Shuffle the array
-            for (let i = base.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [base[i], base[j]] = [base[j], base[i]];
-            }
-            return { sample: base };
-        }
-
-        /**
-         * Generate data for interval series
-         */
-        generateIntervalSeriesData() {
-            const n = this.randomInt(20, 30);
-            const sample = this.generateSampleData(n, 10, 90);
-            const intervalCount = this.randomInt(4, 6);
-            return { sample, intervalCount };
-        }
-
-        // Helper: random integer in [min, max]
-        randomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        // Helper: pick random element from array
-        pickRandom(arr) {
-            return arr[Math.floor(Math.random() * arr.length)];
-        }
-    }
-
-    /* ============================================================
-       TaskRenderer Class - UI Rendering for Each Task Type
-       ============================================================
-       Renders the appropriate HTML for each task type including:
-       data tables, input fields, buttons, and solution areas.
-    */
-    class TaskRenderer {
-        constructor(i18n, mathEngine) {
-            this.i18n = i18n;
-            this.math = mathEngine;
-        }
-
-        /**
-         * Main render method - dispatches to specific task renderers
-         */
-        renderTask(taskType, data) {
-            switch (taskType) {
-                case 'sampleCharacteristics': return this.renderSampleCharacteristics(data);
-                case 'empiricalDistribution': return this.renderEmpiricalDistribution(data);
-                case 'histogram': return this.renderHistogram(data);
-                case 'confidenceMean': return this.renderConfidenceMean(data);
-                case 'confidenceProportion': return this.renderConfidenceProportion(data);
-                case 'hypothesisTesting': return this.renderHypothesisTesting(data);
-                case 'zTest': return this.renderZTest(data);
-                case 'tTest': return this.renderTTest(data);
-                case 'variance': return this.renderVariance(data);
-                case 'stdDeviation': return this.renderStdDeviation(data);
-                case 'medianCalc': return this.renderMedianCalc(data);
-                case 'modeCalc': return this.renderModeCalc(data);
-                case 'intervalSeries': return this.renderIntervalSeries(data);
-                default: return '<p>Unknown task type</p>';
-            }
-        }
-
-        /**
-         * Render a styled data table
-         */
-        renderTable(headers, rows) {
-            let html = '<table class="data-table"><thead><tr>';
-            headers.forEach(h => { html += `<th>${h}</th>`; });
-            html += '</tr></thead><tbody>';
-            rows.forEach(row => {
-                html += '<tr>';
-                row.forEach(cell => { html += `<td>${cell}</td>`; });
-                html += '</tr>';
-            });
-            html += '</tbody></table>';
-            return html;
-        }
-
-        /**
-         * Render input fields with labels
-         */
-        renderInputFields(fields) {
-            let html = '<div class="input-group">';
-            fields.forEach(field => {
-                html += `<div class="input-field">
-                    <label class="input-field__label">${field.label}</label>
-                    <input type="text" class="input-field__input" id="input-${field.id}" 
-                           placeholder="${field.placeholder || ''}" data-answer="${field.answer}">
-                </div>`;
-            });
-            html += '</div>';
-            return html;
-        }
-
-        /**
-         * Render action buttons (Check, Solution, New Data, Show Answers)
-         */
-        renderButtons() {
-            return `<div class="btn-group">
-                <button class="btn btn--primary" onclick="app.checkAnswers()">
-                    ${this.i18n.t('btnCheck')}
-                </button>
-                <button class="btn btn--warning" onclick="app.showSolution()">
-                    ${this.i18n.t('btnSolution')}
-                </button>
-                <button class="btn btn--success" onclick="app.showAnswers()">
-                    ${this.i18n.t('btnShowAnswers')}
-                </button>
-                <button class="btn btn--danger" onclick="app.generateNewData()">
-                    ${this.i18n.t('btnNewData')}
-                </button>
-            </div>`;
-        }
-
-        /**
-         * Render the sample data display
-         */
-        renderSampleDisplay(sample) {
-            const i18n = this.i18n;
-            return `<div class="task-card__description">
-                <strong>${i18n.t('sample')}:</strong> ${sample.join(', ')}<br>
-                <strong>${i18n.t('sampleSize')}:</strong> ${sample.length}
-            </div>`;
-        }
-
-        // ============================================================
-        // Individual Task Renderers
-        // ============================================================
-
-        renderSampleCharacteristics(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const mean = this.math.sampleMean(sample);
-            const variance = this.math.correctedVariance(sample);
-            const stdDev = this.math.standardDeviation(sample);
-            const med = this.math.median(sample);
-            const modes = this.math.mode(sample);
-            const range = this.math.range(sample);
-            const min = Math.min(...sample);
-            const max = Math.max(...sample);
-
-            const fields = [
-                { id: 'mean', label: i18n.t('mean'), answer: mean },
-                { id: 'variance', label: i18n.t('variance'), answer: variance },
-                { id: 'stdDev', label: i18n.t('stdDev'), answer: stdDev },
-                { id: 'median', label: i18n.t('median'), answer: med },
-                { id: 'mode', label: i18n.t('mode'), answer: modes.length > 0 ? modes.join(', ') : '-' },
-                { id: 'range', label: i18n.t('range'), answer: range },
-                { id: 'min', label: i18n.t('min'), answer: min },
-                { id: 'max', label: i18n.t('max'), answer: max }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.sampleCharacteristics')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.sampleCharacteristics')}</p>
-                ${this.renderSampleDisplay(sample)}
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderEmpiricalDistribution(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const relFreq = this.math.relativeFrequencies(sample);
-            const edf = this.math.empiricalDistributionFunction(sample);
-            const sortedKeys = Object.keys(relFreq).map(Number).sort((a, b) => a - b);
-
-            // Build answer table for reference
-            const headers = [i18n.t('value'), i18n.t('frequency'), i18n.t('relFreq'), i18n.t('cumFreq')];
-            const freq = {};
-            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-            const rows = sortedKeys.map(k => [k, freq[k], relFreq[k], edf[k]]);
-
-            // Create input fields for relative frequencies
-            const fields = sortedKeys.map(k => ({
-                id: `relfreq-${k}`,
-                label: `${i18n.t('relFreq')} (x=${k})`,
-                answer: relFreq[k]
-            }));
-
-            // Add cumulative frequency fields
-            const cumFields = sortedKeys.map(k => ({
-                id: `cumfreq-${k}`,
-                label: `F(${k})`,
-                answer: edf[k]
-            }));
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.empiricalDistribution')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.empiricalDistribution')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('relFreq')}</h3>
-                ${this.renderInputFields(fields)}
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('cumFreq')}</h3>
-                ${this.renderInputFields(cumFields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderHistogram(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const intervalCount = data.intervalCount;
-            const min = Math.min(...sample);
-            const max = Math.max(...sample);
-            const width = this.math.round((max - min) / intervalCount);
-            
-            // Build intervals
-            const intervals = [];
-            for (let i = 0; i < intervalCount; i++) {
-                const lower = this.math.round(min + i * width);
-                // Force last interval upper bound to include max
-                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
-                let count = 0;
-                sample.forEach(x => {
-                    if (i === intervalCount - 1) {
-                        if (x >= lower && x <= upper) count++;
-                    } else {
-                        if (x >= lower && x < upper) count++;
-                    }
-                });
-                intervals.push({
-                    lower, upper, count,
-                    relFreq: this.math.round(count / sample.length)
-                });
-            }
-
-            const fields = intervals.map((intv, idx) => ({
-                id: `hist-${idx}`,
-                label: `[${intv.lower}; ${intv.upper}${idx === intervals.length - 1 ? ']' : ')'}`,
-                answer: intv.relFreq
-            }));
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.histogram')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.histogram')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>${i18n.t('interval')}:</strong> ${intervalCount} | 
-                    <strong>Min:</strong> ${min} | <strong>Max:</strong> ${max} |
-                    <strong>h:</strong> ${width}
-                </p>
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('relFreq')}</h3>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderConfidenceMean(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const confidence = data.confidence;
-            const result = this.math.confidenceIntervalMean(sample, confidence);
-
-            const fields = [
-                { id: 'ci-mean', label: i18n.t('mean'), answer: result.mean },
-                { id: 'ci-lower', label: i18n.t('lowerBound'), answer: result.lower },
-                { id: 'ci-upper', label: i18n.t('upperBound'), answer: result.upper }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.confidenceMean')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.confidenceMean')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>${i18n.t('confidence')}:</strong> ${confidence}
-                </p>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderConfidenceProportion(data) {
-            const i18n = this.i18n;
-            const p = this.math.round(data.successes / data.n);
-            const confidence = data.confidence;
-            const result = this.math.confidenceIntervalProportion(p, data.n, confidence);
-
-            const fields = [
-                { id: 'cp-p', label: i18n.t('proportion'), answer: result.p },
-                { id: 'cp-lower', label: i18n.t('lowerBound'), answer: result.lower },
-                { id: 'cp-upper', label: i18n.t('upperBound'), answer: result.upper }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.confidenceProportion')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.confidenceProportion')}</p>
-                <div class="task-card__description">
-                    <strong>${i18n.t('successes')}:</strong> ${data.successes}<br>
-                    <strong>${i18n.t('trials')}:</strong> ${data.n}<br>
-                    <strong>${i18n.t('confidence')}:</strong> ${confidence}
-                </div>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderHypothesisTesting(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const populationMean = data.populationMean;
-            const sigma = data.sigma;
-            const alpha = data.alpha;
-            const sampleMean = this.math.sampleMean(sample);
-            const n = sample.length;
-            const zStat = this.math.zTest(sampleMean, populationMean, sigma, n);
-            const confidence = 1 - alpha;
-            const zCritical = this.math.normalQuantile(confidence);
-            const reject = Math.abs(zStat) > zCritical;
-
-            const fields = [
-                { id: 'ht-mean', label: i18n.t('mean'), answer: sampleMean },
-                { id: 'ht-z', label: i18n.t('zValue'), answer: zStat },
-                { id: 'ht-zcrit', label: i18n.t('criticalValue'), answer: zCritical },
-                { id: 'ht-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.hypothesisTesting')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.hypothesisTesting')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>H₀: μ = ${populationMean}</strong><br>
-                    <strong>${i18n.t('sigma')}:</strong> ${sigma} | 
-                    <strong>${i18n.t('alpha')}:</strong> ${alpha}
-                </p>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderZTest(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const populationMean = data.populationMean;
-            const sigma = data.sigma;
-            const alpha = data.alpha;
-            const sampleMean = this.math.sampleMean(sample);
-            const n = sample.length;
-            const zStat = this.math.zTest(sampleMean, populationMean, sigma, n);
-            const confidence = 1 - alpha;
-            const zCritical = this.math.normalQuantile(confidence);
-            const reject = Math.abs(zStat) > zCritical;
-
-            const fields = [
-                { id: 'zt-mean', label: i18n.t('mean'), answer: sampleMean },
-                { id: 'zt-z', label: i18n.t('zValue'), answer: zStat },
-                { id: 'zt-zcrit', label: i18n.t('criticalValue'), answer: zCritical },
-                { id: 'zt-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.zTest')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.zTest')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>H₀: μ = ${populationMean}</strong><br>
-                    <strong>${i18n.t('sigma')}:</strong> ${sigma} | 
-                    <strong>${i18n.t('alpha')}:</strong> ${alpha}
-                </p>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderTTest(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const populationMean = data.populationMean;
-            const alpha = data.alpha;
-            const sampleMean = this.math.sampleMean(sample);
-            const s = this.math.standardDeviation(sample);
-            const n = sample.length;
-            const tStat = this.math.tTest(sampleMean, populationMean, s, n);
-            const confidence = 1 - alpha;
-            const df = n - 1;
-            const tCritical = this.math.tQuantile(confidence, df);
-            const reject = Math.abs(tStat) > tCritical;
-
-            const fields = [
-                { id: 'tt-mean', label: i18n.t('mean'), answer: sampleMean },
-                { id: 'tt-s', label: i18n.t('stdDev'), answer: s },
-                { id: 'tt-t', label: i18n.t('tValue'), answer: tStat },
-                { id: 'tt-tcrit', label: i18n.t('criticalValue'), answer: tCritical },
-                { id: 'tt-conclusion', label: i18n.t('conclusion'), answer: reject ? i18n.t('rejectH0') : i18n.t('acceptH0') }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.tTest')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.tTest')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>H₀: μ = ${populationMean}</strong><br>
-                    <strong>${i18n.t('alpha')}:</strong> ${alpha} | 
-                    <strong>df:</strong> ${df}
-                </p>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderVariance(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const variance = this.math.correctedVariance(sample);
-            const mean = this.math.sampleMean(sample);
-
-            const fields = [
-                { id: 'var-mean', label: i18n.t('mean'), answer: mean },
-                { id: 'var-variance', label: i18n.t('variance'), answer: variance }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.variance')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.variance')}</p>
-                ${this.renderSampleDisplay(sample)}
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderStdDeviation(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const stdDev = this.math.standardDeviation(sample);
-            const variance = this.math.correctedVariance(sample);
-            const mean = this.math.sampleMean(sample);
-
-            const fields = [
-                { id: 'sd-mean', label: i18n.t('mean'), answer: mean },
-                { id: 'sd-variance', label: i18n.t('variance'), answer: variance },
-                { id: 'sd-stddev', label: i18n.t('stdDev'), answer: stdDev }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.stdDeviation')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.stdDeviation')}</p>
-                ${this.renderSampleDisplay(sample)}
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderMedianCalc(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const med = this.math.median(sample);
-            const sorted = [...sample].sort((a, b) => a - b);
-
-            const fields = [
-                { id: 'med-median', label: i18n.t('median'), answer: med }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.medianCalc')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.medianCalc')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <p style="color: var(--text-muted); font-size: var(--font-size-sm); margin-bottom: 12px;">
-                    Sorted: ${sorted.join(', ')}
-                </p>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderModeCalc(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const modes = this.math.mode(sample);
-            const modeStr = modes.length > 0 ? modes.join(', ') : '-';
-
-            // Show frequency table
-            const freq = {};
-            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
-            const headers = [i18n.t('value'), i18n.t('frequency')];
-            const rows = sortedKeys.map(k => [k, freq[k]]);
-
-            const fields = [
-                { id: 'mode-mode', label: i18n.t('mode'), answer: modeStr }
-            ];
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.modeCalc')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.modeCalc')}</p>
-                ${this.renderSampleDisplay(sample)}
-                ${this.renderTable(headers, rows)}
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-
-        renderIntervalSeries(data) {
-            const i18n = this.i18n;
-            const sample = data.sample;
-            const intervalCount = data.intervalCount;
-            const min = Math.min(...sample);
-            const max = Math.max(...sample);
-            const width = this.math.round((max - min) / intervalCount);
-
-            // Build intervals
-            const intervals = [];
-            for (let i = 0; i < intervalCount; i++) {
-                const lower = this.math.round(min + i * width);
-                // Force last interval upper bound to include max
-                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
-                let count = 0;
-                sample.forEach(x => {
-                    if (i === intervalCount - 1) {
-                        if (x >= lower && x <= upper) count++;
-                    } else {
-                        if (x >= lower && x < upper) count++;
-                    }
-                });
-                intervals.push({ lower, upper, count });
-            }
-
-            const fields = intervals.map((intv, idx) => ({
-                id: `int-${idx}`,
-                label: `[${intv.lower}; ${intv.upper}${idx === intervals.length - 1 ? ']' : ')'}`,
-                answer: intv.count
-            }));
-
-            return `<div class="task-card">
-                <h2 class="task-card__title">${i18n.t('tasks.intervalSeries')}</h2>
-                <p class="task-card__description">${i18n.t('taskDescriptions.intervalSeries')}</p>
-                ${this.renderSampleDisplay(sample)}
-                <p style="color: var(--text-secondary); margin-bottom: 12px;">
-                    <strong>${i18n.t('interval')}:</strong> ${intervalCount} | 
-                    <strong>Min:</strong> ${min} | <strong>Max:</strong> ${max} |
-                    <strong>h:</strong> ${width}
-                </p>
-                <h3 style="margin: 16px 0 8px; color: var(--text-secondary);">${i18n.t('intervalFreq')}</h3>
-                ${this.renderInputFields(fields)}
-                ${this.renderButtons()}
-                <div id="solution-area"></div>
-            </div>`;
-        }
-    }
-
-    /* ============================================================
-       AnswerChecker Class - Validates User Answers
-       ============================================================
-       Compares user input with correct answers using configurable
-       tolerance. Handles numeric and text answers.
-    */
-    class AnswerChecker {
-        constructor(mathEngine) {
-            this.math = mathEngine;
-        }
-
-        /**
-         * Check a single answer with tolerance
-         * For numeric answers: |userAnswer - correctAnswer| <= tolerance
-         * For text answers: case-insensitive comparison
-         */
-        checkAnswer(userAnswer, correctAnswer, tolerance = 0.01) {
-            // Clean user input
-            const userStr = String(userAnswer).trim().replace(',', '.');
-            const correctStr = String(correctAnswer).trim();
-
-            // Try numeric comparison first
-            const userNum = parseFloat(userStr);
-            const correctNum = parseFloat(correctStr);
-
-            if (!isNaN(userNum) && !isNaN(correctNum)) {
-                return Math.abs(userNum - correctNum) <= tolerance;
-            }
-
-            // Text comparison (for mode with multiple values, conclusions, etc.)
-            return userStr.toLowerCase() === correctStr.toLowerCase();
-        }
-
-        /**
-         * Check all answer fields in the current task
-         * Returns array of {id, correct, userAnswer, expectedAnswer}
-         */
-        checkAllAnswers() {
-            const inputs = document.querySelectorAll('.input-field__input');
-            const results = [];
-            inputs.forEach(input => {
-                const userAnswer = input.value;
-                const correctAnswer = input.getAttribute('data-answer');
-                const isCorrect = this.checkAnswer(userAnswer, correctAnswer);
-                results.push({
-                    id: input.id,
-                    correct: isCorrect,
-                    userAnswer: userAnswer,
-                    expectedAnswer: correctAnswer
-                });
-            });
-            return results;
-        }
-
-        /**
-         * Apply green/red highlighting to inputs based on results
-         */
-        highlightResults(results) {
-            results.forEach(r => {
-                const input = document.getElementById(r.id);
-                if (input) {
-                    input.classList.remove('input-field__input--correct', 'input-field__input--incorrect');
-                    if (r.userAnswer.trim() === '') return; // Skip empty
-                    if (r.correct) {
-                        input.classList.add('input-field__input--correct');
-                    } else {
-                        input.classList.add('input-field__input--incorrect');
-                    }
-                }
-            });
-        }
-
-        /**
-         * Calculate score percentage from results
-         */
-        calculateScore(results) {
-            const answered = results.filter(r => r.userAnswer.trim() !== '');
-            if (answered.length === 0) return 0;
-            const correct = answered.filter(r => r.correct).length;
-            return { correct, total: answered.length, percentage: Math.round(correct / answered.length * 100) };
-        }
-    }
-
-    /* ============================================================
-       SolutionDisplay Class - Step-by-Step Solutions
-       ============================================================
-       Generates detailed mathematical solutions showing:
-       - Formula description
-       - The formula itself
-       - Number substitution
-       - Intermediate calculations
-       - Final result
-    */
-    class SolutionDisplay {
-        constructor(i18n, mathEngine) {
-            this.i18n = i18n;
-            this.math = mathEngine;
-        }
-
-        /**
-         * Generate solution steps for a given task type and data
-         * Returns array of step objects
-         */
-        generateSolution(taskType, data) {
-            switch (taskType) {
-                case 'sampleCharacteristics': return this.solveSampleCharacteristics(data);
-                case 'empiricalDistribution': return this.solveEmpiricalDistribution(data);
-                case 'histogram': return this.solveHistogram(data);
-                case 'confidenceMean': return this.solveConfidenceMean(data);
-                case 'confidenceProportion': return this.solveConfidenceProportion(data);
-                case 'hypothesisTesting': return this.solveHypothesisTesting(data);
-                case 'zTest': return this.solveZTest(data);
-                case 'tTest': return this.solveTTest(data);
-                case 'variance': return this.solveVariance(data);
-                case 'stdDeviation': return this.solveStdDeviation(data);
-                case 'medianCalc': return this.solveMedian(data);
-                case 'modeCalc': return this.solveMode(data);
-                case 'intervalSeries': return this.solveIntervalSeries(data);
-                default: return [];
-            }
-        }
-
-        /**
-         * Render solution steps as HTML
-         */
-        renderSolution(steps) {
-            const i18n = this.i18n;
-            let html = `<div class="solution">
-                <h3 class="solution__title">${i18n.t('solutionTitle')}</h3>`;
-            steps.forEach((step, idx) => {
-                html += `<div class="solution__step">
-                    <div class="solution__step-title">${i18n.t('step')} ${idx + 1}: ${step.description}</div>
-                    ${step.formula ? `<div class="solution__step-formula">${step.formula}</div>` : ''}
-                    ${step.substitution ? `<div class="solution__step-formula">${step.substitution}</div>` : ''}
-                    <div class="solution__step-result">${i18n.t('result')}: ${step.result}</div>
-                </div>`;
-            });
-            html += '</div>';
-            return html;
-        }
-
-        // ============================================================
-        // Solution Generators for Each Task Type
-        // ============================================================
-
-        solveSampleCharacteristics(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const sum = sample.reduce((a, b) => a + b, 0);
-            const mean = this.math.sampleMean(sample);
-            const variance = this.math.correctedVariance(sample);
-            const stdDev = this.math.standardDeviation(sample);
-            const med = this.math.median(sample);
-            const modes = this.math.mode(sample);
-            const range = this.math.range(sample);
-
-            return [
-                {
-                    description: this.i18n.t('mean'),
-                    formula: 'x\u0304 = (1/n) * \u03A3x\u1d62',
-                    substitution: `x\u0304 = (${sum}) / ${n}`,
-                    result: mean
-                },
-                {
-                    description: this.i18n.t('variance'),
-                    formula: 'S\u00B2 = \u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1)',
-                    substitution: `S\u00B2 = \u03A3(x\u1d62 - ${mean})\u00B2 / (${n}-1)`,
-                    result: variance
-                },
-                {
-                    description: this.i18n.t('stdDev'),
-                    formula: 'S = \u221A(S\u00B2)',
-                    substitution: `S = \u221A(${variance})`,
-                    result: stdDev
-                },
-                {
-                    description: this.i18n.t('median'),
-                    formula: 'Me = x[(n+1)/2] for odd n, or (x[n/2] + x[n/2+1])/2 for even n',
-                    substitution: `n = ${n} (${n % 2 === 0 ? 'even' : 'odd'})`,
-                    result: med
-                },
-                {
-                    description: this.i18n.t('mode'),
-                    formula: 'Mo = value(s) with highest frequency',
-                    substitution: '',
-                    result: modes.length > 0 ? modes.join(', ') : '-'
-                },
-                {
-                    description: this.i18n.t('range'),
-                    formula: 'R = x_max - x_min',
-                    substitution: `R = ${Math.max(...sample)} - ${Math.min(...sample)}`,
-                    result: range
-                }
-            ];
-        }
-
-        solveEmpiricalDistribution(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const freq = {};
-            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-            const sortedKeys = Object.keys(freq).map(Number).sort((a, b) => a - b);
-            const relFreq = this.math.relativeFrequencies(sample);
-            const edf = this.math.empiricalDistributionFunction(sample);
-
-            const steps = [{
-                description: this.i18n.t('frequency'),
-                formula: 'n\u1d62 = count of x\u1d62 in sample',
-                substitution: sortedKeys.map(k => `n(${k}) = ${freq[k]}`).join(', '),
-                result: `n = ${n}`
-            }];
-
-            steps.push({
-                description: this.i18n.t('relFreq'),
-                formula: 'w\u1d62 = n\u1d62 / n',
-                substitution: sortedKeys.map(k => `w(${k}) = ${freq[k]}/${n}`).join(', '),
-                result: sortedKeys.map(k => `w(${k}) = ${relFreq[k]}`).join(', ')
-            });
-
-            steps.push({
-                description: this.i18n.t('cumFreq'),
-                formula: 'F(x) = \u03A3 w\u1d62 for x\u1d62 \u2264 x',
-                substitution: '',
-                result: sortedKeys.map(k => `F(${k}) = ${edf[k]}`).join(', ')
-            });
-
-            return steps;
-        }
-
-        solveHistogram(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const intervalCount = data.intervalCount;
-            const min = Math.min(...sample);
-            const max = Math.max(...sample);
-            const width = this.math.round((max - min) / intervalCount);
-
-            const steps = [{
-                description: this.i18n.t('solveIntervalWidth'),
-                formula: 'h = (x_max - x_min) / k',
-                substitution: `h = (${max} - ${min}) / ${intervalCount}`,
-                result: width
-            }];
-
-            for (let i = 0; i < intervalCount; i++) {
-                const lower = this.math.round(min + i * width);
-                // Force last interval upper bound to include max
-                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
-                let count = 0;
-                sample.forEach(x => {
-                    if (i === intervalCount - 1) {
-                        if (x >= lower && x <= upper) count++;
-                    } else {
-                        if (x >= lower && x < upper) count++;
-                    }
-                });
-                const relFreq = this.math.round(count / n);
-                steps.push({
-                    description: `[${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
-                    formula: `w = n\u1d62 / n`,
-                    substitution: `w = ${count} / ${n}`,
-                    result: relFreq
-                });
-            }
-
-            return steps;
-        }
-
-        solveConfidenceMean(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const confidence = data.confidence;
-            const result = this.math.confidenceIntervalMean(sample, confidence);
-
-            return [
-                {
-                    description: this.i18n.t('mean'),
-                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
-                    substitution: `x\u0304 = ${sample.reduce((a, b) => a + b, 0)} / ${n}`,
-                    result: result.mean
-                },
-                {
-                    description: this.i18n.t('stdDev'),
-                    formula: 'S = \u221A(\u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1))',
-                    substitution: `n = ${n}, df = ${n - 1}`,
-                    result: result.s
-                },
-                {
-                    description: 't-quantile',
-                    formula: `t(\u03B1/2, df) for confidence = ${confidence}`,
-                    substitution: `t(${this.math.round((1 - confidence) / 2)}, ${n - 1})`,
-                    result: result.t
-                },
-                {
-                    description: 'Margin of error',
-                    formula: '\u0394 = t * S / \u221An',
-                    substitution: `\u0394 = ${result.t} * ${result.s} / \u221A${n}`,
-                    result: result.margin
-                },
-                {
-                    description: this.i18n.t('answer'),
-                    formula: `(x\u0304 - \u0394; x\u0304 + \u0394)`,
-                    substitution: `(${result.mean} - ${result.margin}; ${result.mean} + ${result.margin})`,
-                    result: `(${result.lower}; ${result.upper})`
-                }
-            ];
-        }
-
-        solveConfidenceProportion(data) {
-            const p = this.math.round(data.successes / data.n);
-            const confidence = data.confidence;
-            const result = this.math.confidenceIntervalProportion(p, data.n, confidence);
-
-            return [
-                {
-                    description: this.i18n.t('proportion'),
-                    formula: 'p\u0302 = m / n',
-                    substitution: `p\u0302 = ${data.successes} / ${data.n}`,
-                    result: result.p
-                },
-                {
-                    description: 'Z-quantile',
-                    formula: `z(\u03B1/2) for confidence = ${confidence}`,
-                    substitution: '',
-                    result: result.z
-                },
-                {
-                    description: 'Margin of error',
-                    formula: '\u0394 = z * \u221A(p\u0302(1-p\u0302)/n)',
-                    substitution: `\u0394 = ${result.z} * \u221A(${result.p}*${this.math.round(1 - result.p)}/${data.n})`,
-                    result: result.margin
-                },
-                {
-                    description: this.i18n.t('answer'),
-                    formula: '(p\u0302 - \u0394; p\u0302 + \u0394)',
-                    substitution: `(${result.p} - ${result.margin}; ${result.p} + ${result.margin})`,
-                    result: `(${result.lower}; ${result.upper})`
-                }
-            ];
-        }
-
-        solveHypothesisTesting(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const populationMean = data.populationMean;
-            const sigma = data.sigma;
-            const alpha = data.alpha;
-            const sampleMean = this.math.sampleMean(sample);
-            const zStat = this.math.zTest(sampleMean, populationMean, sigma, n);
-            const confidence = 1 - alpha;
-            const zCritical = this.math.normalQuantile(confidence);
-            const reject = Math.abs(zStat) > zCritical;
-
-            return [
-                {
-                    description: this.i18n.t('mean'),
-                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
-                    substitution: `n = ${n}`,
-                    result: sampleMean
-                },
-                {
-                    description: this.i18n.t('zValue'),
-                    formula: 'z = (x\u0304 - \u03BC\u2080) / (\u03C3 / \u221An)',
-                    substitution: `z = (${sampleMean} - ${populationMean}) / (${sigma} / \u221A${n})`,
-                    result: zStat
-                },
-                {
-                    description: this.i18n.t('criticalValue'),
-                    formula: `z_crit for \u03B1 = ${alpha} (two-tailed)`,
-                    substitution: `P(|Z| > z_crit) = ${alpha}`,
-                    result: zCritical
-                },
-                {
-                    description: this.i18n.t('conclusion'),
-                    formula: `|z| ${Math.abs(zStat) > zCritical ? '>' : '\u2264'} z_crit`,
-                    substitution: `|${zStat}| = ${this.math.round(Math.abs(zStat))} vs ${zCritical}`,
-                    result: reject ? this.i18n.t('rejectH0') : this.i18n.t('acceptH0')
-                }
-            ];
-        }
-
-        solveZTest(data) {
-            // Same as hypothesis testing since both use Z-test
-            return this.solveHypothesisTesting(data);
-        }
-
-        solveTTest(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const populationMean = data.populationMean;
-            const alpha = data.alpha;
-            const sampleMean = this.math.sampleMean(sample);
-            const s = this.math.standardDeviation(sample);
-            const df = n - 1;
-            const tStat = this.math.tTest(sampleMean, populationMean, s, n);
-            const confidence = 1 - alpha;
-            const tCritical = this.math.tQuantile(confidence, df);
-            const reject = Math.abs(tStat) > tCritical;
-
-            return [
-                {
-                    description: this.i18n.t('mean'),
-                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
-                    substitution: `n = ${n}`,
-                    result: sampleMean
-                },
-                {
-                    description: this.i18n.t('stdDev'),
-                    formula: 'S = \u221A(\u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1))',
-                    substitution: `df = ${df}`,
-                    result: s
-                },
-                {
-                    description: this.i18n.t('tValue'),
-                    formula: 't = (x\u0304 - \u03BC\u2080) / (S / \u221An)',
-                    substitution: `t = (${sampleMean} - ${populationMean}) / (${s} / \u221A${n})`,
-                    result: tStat
-                },
-                {
-                    description: this.i18n.t('criticalValue'),
-                    formula: `t_crit(${alpha}, ${df}) (two-tailed)`,
-                    substitution: `\u03B1 = ${alpha}, df = ${df}`,
-                    result: tCritical
-                },
-                {
-                    description: this.i18n.t('conclusion'),
-                    formula: `|t| ${Math.abs(tStat) > tCritical ? '>' : '\u2264'} t_crit`,
-                    substitution: `|${tStat}| = ${this.math.round(Math.abs(tStat))} vs ${tCritical}`,
-                    result: reject ? this.i18n.t('rejectH0') : this.i18n.t('acceptH0')
-                }
-            ];
-        }
-
-        solveVariance(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const mean = this.math.sampleMean(sample);
-            const variance = this.math.correctedVariance(sample);
-            const sumSqDiff = this.math.round(sample.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0));
-
-            return [
-                {
-                    description: this.i18n.t('mean'),
-                    formula: 'x\u0304 = \u03A3x\u1d62 / n',
-                    substitution: `x\u0304 = ${sample.reduce((a, b) => a + b, 0)} / ${n}`,
-                    result: mean
-                },
-                {
-                    description: '\u03A3(x\u1d62 - x\u0304)\u00B2',
-                    formula: 'Sum of squared deviations',
-                    substitution: `\u03A3(x\u1d62 - ${mean})\u00B2`,
-                    result: sumSqDiff
-                },
-                {
-                    description: this.i18n.t('variance'),
-                    formula: 'S\u00B2 = \u03A3(x\u1d62 - x\u0304)\u00B2 / (n-1)',
-                    substitution: `S\u00B2 = ${sumSqDiff} / (${n} - 1) = ${sumSqDiff} / ${n - 1}`,
-                    result: variance
-                }
-            ];
-        }
-
-        solveStdDeviation(data) {
-            const steps = this.solveVariance(data);
-            const stdDev = this.math.standardDeviation(data.sample);
-            const variance = this.math.correctedVariance(data.sample);
-            steps.push({
-                description: this.i18n.t('stdDev'),
-                formula: 'S = \u221A(S\u00B2)',
-                substitution: `S = \u221A(${variance})`,
-                result: stdDev
-            });
-            return steps;
-        }
-
-        solveMedian(data) {
-            const sample = data.sample;
-            const sorted = [...sample].sort((a, b) => a - b);
-            const n = sorted.length;
-            const med = this.math.median(sample);
-
-            const steps = [{
-                description: this.i18n.t('solveSortSample'),
-                formula: this.i18n.t('solveArrangeAscending'),
-                substitution: sorted.join(', '),
-                result: `n = ${n}`
-            }];
-
-            if (n % 2 === 0) {
-                const mid1 = sorted[n / 2 - 1];
-                const mid2 = sorted[n / 2];
-                steps.push({
-                    description: this.i18n.t('median'),
-                    formula: 'Me = (x[n/2] + x[n/2+1]) / 2',
-                    substitution: `Me = (${mid1} + ${mid2}) / 2`,
-                    result: med
-                });
-            } else {
-                const midIdx = Math.floor(n / 2);
-                steps.push({
-                    description: this.i18n.t('median'),
-                    formula: 'Me = x[(n+1)/2]',
-                    substitution: `Me = x[${midIdx + 1}] = ${sorted[midIdx]}`,
-                    result: med
-                });
-            }
-            return steps;
-        }
-
-        solveMode(data) {
-            const sample = data.sample;
-            const freq = {};
-            sample.forEach(x => { freq[x] = (freq[x] || 0) + 1; });
-            const maxFreq = Math.max(...Object.values(freq));
-            const modes = this.math.mode(sample);
-
-            return [
-                {
-                    description: this.i18n.t('frequency'),
-                    formula: 'Count occurrences of each value',
-                    substitution: Object.keys(freq).map(Number).sort((a, b) => a - b)
-                        .map(k => `${k}: ${freq[k]}`).join(', '),
-                    result: `Max frequency = ${maxFreq}`
-                },
-                {
-                    description: this.i18n.t('mode'),
-                    formula: 'Mo = value(s) with maximum frequency',
-                    substitution: '',
-                    result: modes.length > 0 ? modes.join(', ') : '-'
-                }
-            ];
-        }
-
-        solveIntervalSeries(data) {
-            const sample = data.sample;
-            const n = sample.length;
-            const intervalCount = data.intervalCount;
-            const min = Math.min(...sample);
-            const max = Math.max(...sample);
-            const width = this.math.round((max - min) / intervalCount);
-
-            const steps = [{
-                description: this.i18n.t('solveIntervalWidth'),
-                formula: 'h = (x_max - x_min) / k',
-                substitution: `h = (${max} - ${min}) / ${intervalCount}`,
-                result: width
-            }];
-
-            for (let i = 0; i < intervalCount; i++) {
-                const lower = this.math.round(min + i * width);
-                // Force last interval upper bound to include max
-                const upper = (i === intervalCount - 1) ? max : this.math.round(min + (i + 1) * width);
-                let count = 0;
-                sample.forEach(x => {
-                    if (i === intervalCount - 1) {
-                        if (x >= lower && x <= upper) count++;
-                    } else {
-                        if (x >= lower && x < upper) count++;
-                    }
-                });
-                steps.push({
-                    description: `[${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
-                    formula: this.i18n.t('solveCountValues'),
-                    substitution: `${this.i18n.t('solveValuesIn')} [${lower}; ${upper}${i === intervalCount - 1 ? ']' : ')'}`,
-                    result: `n\u1d62 = ${count}`
-                });
-            }
-            return steps;
-        }
-    }
-
-    /* ============================================================
-       App Class - Main Application Controller
-       ============================================================
-       Orchestrates all other classes. Manages:
-       - State (current task, score, timer, language, dark mode)
-       - Navigation between task types
-       - localStorage persistence
-       - Event handling
-       - UI updates
-    */
-    class App {
-        constructor() {
-            this.i18n = new I18n();
-            this.math = new MathEngine();
-            this.dataGen = new DataGenerator();
-            this.renderer = new TaskRenderer(this.i18n, this.math);
-            this.checker = new AnswerChecker(this.math);
-            this.solutionDisplay = new SolutionDisplay(this.i18n, this.math);
-
-            // Task types configuration
-            this.taskTypes = [
-                'sampleCharacteristics',
-                'empiricalDistribution',
-                'histogram',
-                'confidenceMean',
-                'confidenceProportion',
-                'hypothesisTesting',
-                'zTest',
-                'tTest',
-                'variance',
-                'stdDeviation',
-                'medianCalc',
-                'modeCalc',
-                'intervalSeries'
-            ];
-
-            // Task icons for sidebar
-            this.taskIcons = {
-                sampleCharacteristics: '\u03BC',
-                empiricalDistribution: 'F(x)',
-                histogram: '\u2593',
-                confidenceMean: '\u00B1',
-                confidenceProportion: 'p\u0302',
-                hypothesisTesting: 'H\u2080',
-                zTest: 'Z',
-                tTest: 't',
-                variance: 'S\u00B2',
-                stdDeviation: 'S',
-                medianCalc: 'Me',
-                modeCalc: 'Mo',
-                intervalSeries: '[ ]'
-            };
-
-            // Application state
-            this.state = {
-                currentTask: 'sampleCharacteristics',
-                currentData: null,
-                score: { correct: 0, total: 0 },
-                completedTasks: [],
-                timerSeconds: 0,
-                timerInterval: null,
-                darkMode: false,
-                language: 'ru',
-                alreadyChecked: false
-            };
-        }
-
-        /**
-         * Initialize the application
-         * Sets up event listeners, loads saved state, renders initial view
-         */
-        init() {
-            this.loadProgress();
-            this.renderSidebar();
-            this.selectTask(this.state.currentTask);
-            this.startTimer();
-            this.updateScore();
-            this.updateProgress();
-            this.applyTheme();
-            this.updateLanguageButtons();
-        }
-
-        /**
-         * Render the sidebar navigation with all task types
-         */
-        renderSidebar() {
-            const nav = document.getElementById('taskNav');
-            const i18n = this.i18n;
-            nav.innerHTML = '';
-            this.taskTypes.forEach(taskType => {
-                const li = document.createElement('li');
-                li.className = 'sidebar__nav-item' +
-                    (taskType === this.state.currentTask ? ' sidebar__nav-item--active' : '');
-                li.innerHTML = `<span class="sidebar__nav-item-icon">${this.taskIcons[taskType]}</span>
-                    <span>${i18n.t('tasks.' + taskType)}</span>`;
-                li.onclick = () => this.selectTask(taskType);
-                nav.appendChild(li);
-            });
-        }
-
-        /**
-         * Select and render a specific task type
-         */
-        selectTask(taskType) {
-            this.state.currentTask = taskType;
-            this.generateNewData();
-            this.renderSidebar(); // Update active state
-            this.saveProgress();
-        }
-
-        /**
-         * Generate new random data for the current task and re-render
-         */
-        generateNewData() {
-            this.state.alreadyChecked = false;
-            const taskType = this.state.currentTask;
-            let data;
-
-            switch (taskType) {
-                case 'sampleCharacteristics': data = this.dataGen.generateSampleCharacteristicsData(); break;
-                case 'empiricalDistribution': data = this.dataGen.generateEmpiricalDistributionData(); break;
-                case 'histogram': data = this.dataGen.generateHistogramData(); break;
-                case 'confidenceMean': data = this.dataGen.generateConfidenceIntervalMeanData(); break;
-                case 'confidenceProportion': data = this.dataGen.generateConfidenceIntervalProportionData(); break;
-                case 'hypothesisTesting': data = this.dataGen.generateHypothesisTestData(); break;
-                case 'zTest': data = this.dataGen.generateZTestData(); break;
-                case 'tTest': data = this.dataGen.generateTTestData(); break;
-                case 'variance': data = this.dataGen.generateVarianceData(); break;
-                case 'stdDeviation': data = this.dataGen.generateStdDevData(); break;
-                case 'medianCalc': data = this.dataGen.generateMedianData(); break;
-                case 'modeCalc': data = this.dataGen.generateModeData(); break;
-                case 'intervalSeries': data = this.dataGen.generateIntervalSeriesData(); break;
-                default: data = this.dataGen.generateSampleCharacteristicsData();
-            }
-
-            this.state.currentData = data;
-            this.renderCurrentTask();
-        }
-
-        /**
-         * Render the current task in the content area
-         */
-        renderCurrentTask() {
-            const content = document.getElementById('taskContent');
-            content.innerHTML = this.renderer.renderTask(this.state.currentTask, this.state.currentData);
-        }
-
-        /**
-         * Check all user answers for the current task
-         * Guarded against repeated submission - only scores once per data set
-         */
-        checkAnswers() {
-            // Prevent score inflation by blocking re-check on same data
-            if (this.state.alreadyChecked) {
-                // Still show highlighting but do not add to score again
-                const results = this.checker.checkAllAnswers();
-                this.checker.highlightResults(results);
-                return;
-            }
-
-            const results = this.checker.checkAllAnswers();
-            this.checker.highlightResults(results);
-
-            const scoreResult = this.checker.calculateScore(results);
-            if (scoreResult.total > 0) {
-                this.state.score.correct += scoreResult.correct;
-                this.state.score.total += scoreResult.total;
-                this.updateScore();
-
-                // Mark task as completed if all correct
-                if (scoreResult.percentage === 100 && !this.state.completedTasks.includes(this.state.currentTask)) {
-                    this.state.completedTasks.push(this.state.currentTask);
-                    this.updateProgress();
-                }
-            }
-            this.state.alreadyChecked = true;
-            this.saveProgress();
-        }
-
-        /**
-         * Show the step-by-step solution for the current task
-         */
-        showSolution() {
-            const solutionArea = document.getElementById('solution-area');
-            if (solutionArea) {
-                const steps = this.solutionDisplay.generateSolution(this.state.currentTask, this.state.currentData);
-                solutionArea.innerHTML = this.solutionDisplay.renderSolution(steps);
-            }
-        }
-
-        /**
-         * Fill in all correct answers (Show Answers button)
-         */
-        showAnswers() {
-            const inputs = document.querySelectorAll('.input-field__input');
-            inputs.forEach(input => {
-                const answer = input.getAttribute('data-answer');
-                input.value = answer;
-                input.classList.remove('input-field__input--incorrect');
-                input.classList.add('input-field__input--correct');
-            });
-        }
-
-        /**
-         * Toggle dark/light mode
-         */
-        toggleDarkMode() {
-            this.state.darkMode = !this.state.darkMode;
-            this.applyTheme();
-            this.saveProgress();
-        }
-
-        /**
-         * Apply the current theme (dark or light)
-         */
-        applyTheme() {
-            if (this.state.darkMode) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('darkToggle').textContent = this.i18n.t('lightMode');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                document.getElementById('darkToggle').textContent = this.i18n.t('darkMode');
-            }
-        }
-
-        /**
-         * Switch the UI language
-         */
-        toggleLanguage(lang) {
-            this.state.language = lang;
-            this.i18n.setLanguage(lang);
-            this.updateLanguageButtons();
-            this.renderSidebar();
-            this.renderCurrentTask();
-            this.updateUITexts();
-            this.saveProgress();
-        }
-
-        /**
-         * Update language button active states
-         */
-        updateLanguageButtons() {
-            document.querySelectorAll('.header__lang-btn').forEach(btn => {
-                btn.classList.toggle('header__lang-btn--active', btn.getAttribute('data-lang') === this.state.language);
-            });
-        }
-
-        /**
-         * Update all static UI text elements to current language
-         */
-        updateUITexts() {
-            document.getElementById('headerTitle').textContent = this.i18n.t('headerTitle');
-            document.getElementById('sidebarTitle').textContent = this.i18n.t('sidebarTitle');
-            document.getElementById('footerText').textContent = this.i18n.t('footerText');
-        }
-
-        /**
-         * Start the elapsed time timer
-         */
-        startTimer() {
-            if (this.state.timerInterval) clearInterval(this.state.timerInterval);
-            this.state.timerInterval = setInterval(() => {
-                this.state.timerSeconds++;
-                this.updateTimerDisplay();
-            }, 1000);
-            this.updateTimerDisplay();
-        }
-
-        /**
-         * Update the timer display in MM:SS format
-         */
-        updateTimerDisplay() {
-            const minutes = Math.floor(this.state.timerSeconds / 60);
-            const seconds = this.state.timerSeconds % 60;
-            const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            document.getElementById('timer').textContent = display;
-        }
-
-        /**
-         * Update the score display
-         */
-        updateScore() {
-            document.getElementById('score').textContent = `${this.state.score.correct}/${this.state.score.total}`;
-        }
-
-        /**
-         * Update the progress indicator (bar and text)
-         */
-        updateProgress() {
-            const total = this.taskTypes.length;
-            const completed = this.state.completedTasks.length;
-            const percentage = Math.round((completed / total) * 100);
-            document.getElementById('progressFill').style.width = percentage + '%';
-            document.getElementById('progressText').textContent = `${completed}/${total}`;
-        }
-
-        /**
-         * Save current progress to localStorage
-         */
-        saveProgress() {
-            const saveData = {
-                currentTask: this.state.currentTask,
-                score: this.state.score,
-                completedTasks: this.state.completedTasks,
-                timerSeconds: this.state.timerSeconds,
-                darkMode: this.state.darkMode,
-                language: this.state.language
-            };
-            try {
-                localStorage.setItem('statistics_platform_state', JSON.stringify(saveData));
-            } catch (e) {
-                // localStorage might be unavailable in some contexts
-            }
-        }
-
-        /**
-         * Load saved progress from localStorage
-         */
-        loadProgress() {
-            try {
-                const saved = localStorage.getItem('statistics_platform_state');
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    this.state.currentTask = data.currentTask || 'sampleCharacteristics';
-                    this.state.score = data.score || { correct: 0, total: 0 };
-                    this.state.completedTasks = data.completedTasks || [];
-                    this.state.timerSeconds = data.timerSeconds || 0;
-                    this.state.darkMode = data.darkMode || false;
-                    this.state.language = data.language || 'ru';
-                    this.i18n.setLanguage(this.state.language);
-                }
-            } catch (e) {
-                // If parsing fails, use default state
-            }
-        }
-
-        /**
-         * Reset all progress - clears localStorage and resets state
-         */
-        resetProgress() {
-            try {
-                localStorage.removeItem('statistics_platform_state');
-            } catch (e) {}
-            this.state.score = { correct: 0, total: 0 };
-            this.state.completedTasks = [];
-            this.state.timerSeconds = 0;
-            if (this.state.timerInterval) clearInterval(this.state.timerInterval);
-            this.state.currentTask = 'sampleCharacteristics';
-            this.updateScore();
-            this.updateProgress();
-            this.startTimer();
-            this.selectTask('sampleCharacteristics');
-        }
-    }
-
-    /* ============================================================
-       Application Initialization
-       ============================================================
-       Create the App instance and initialize when the DOM is ready.
-    */
-    let app;
-    document.addEventListener('DOMContentLoaded', function() {
-        app = new App();
-        app.init();
-    });
-    </script>
+<div class="quiz-container">
+  <div class="header">
+    <h1>Ehtimollar nazariyasi va matematika statistika</h1>
+    <div class="subtitle">Interaktiv test &middot; Случайные параметры &middot; Random parameters</div>
+    <div class="toolbar">
+      <button class="btn btn-accent" onclick="regenerateAll()">&#x21bb; Yangi qiymatlar / Новые значения / New values</button>
+    </div>
+  </div>
+  <div id="questions"></div>
+  <button class="btn btn-primary btn-block" onclick="checkAll()">Tekshirish / Проверить / Check</button>
+  <div id="result-summary" class="result-summary"></div>
+</div>
+<script>
+// =========================================================
+//  STATE & HELPERS
+// =========================================================
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+let P = {}; // randomized parameters
+const checkedQ = {}; // tracks which questions are checked
+
+
+// =========================================================
+//  PARAMETER GENERATION
+// =========================================================
+function genParams(){
+  return {
+    q1:(()=>{ const n1=rand(2,9); let n2; do { n2=rand(2,9); } while(n2===n1); return {n1,n2}; })(),
+    q2:{n:pick([5,8,10,12,15,20])},
+    q11:{n:pick([4,6,8,10,12,14])},
+    q13:{n:pick([3,5,7,9,11,13])},
+    q17:(()=>{ const a=rand(2,7); let b; do { b=rand(3,8); } while(b===a); return {a,b}; })(),
+    q21:(()=>{ const a=pick([1,2,3]); let b; do { b=pick([2,3,4,5]); } while(b===a); return {a,b}; })(),
+    q25:{mu:rand(1,6), sigma:pick([2,3,4,5]), n:pick([4,5,6,7,8])},
+    q29:(()=>{ const m=pick([3,4,5,6,7]); let n; do { n=pick([3,4,5,6,7]); } while(n===m); return {m,n}; })(),
+    q30:{k:pick([3,4,5,6,7])},
+    q31:{k:pick([2,3,4,5,6])},
+    q32:{n:pick([5,7,9,11,13])},
+    q33:(()=>{ const m=pick([4,5,6,7,8]); let n; do { n=pick([3,4,5,6,7]); } while(n===m); return {m,n}; })(),
+    q34:{k:pick([3,4,5,6,7])},
+    q35:{mu:rand(2,8), sigma:pick([2,3,4,5]), n:pick([5,6,7,8,10])}
+  };
+}
+
+// =========================================================
+//  STATIC TEXT (questions that don't change)
+// =========================================================
+const Q_TEXT = {
+  q3:{
+    uz:"Ehtimollik zichlik funksiyasi nima uchun ishlatiladi?",
+    ru:"Для чего используется функция плотности вероятности?",
+    en:"What is a probability density function used for?"
+  },
+  q4:{
+    uz:"Gipergeometrik taqsimot qachon qo'llanadi?",
+    ru:"Когда применяют гипергеометрическое распределение?",
+    en:"When is the hypergeometric distribution applied?"
+  },
+  q7:{
+    uz:"Marginal zichlik $f_X(x)$ nimani tasvirlaydi?",
+    ru:"Маргинальная плотность $f_X(x)$ описывает:",
+    en:"Marginal density $f_X(x)$ describes:"
+  },
+  q9:{
+    uz:"Markaziy chegaraviy teorema nima deydi?",
+    ru:"Что утверждает центральная предельная теорема?",
+    en:"What does the Central Limit Theorem state?"
+  },
+  q10:{
+    uz:"Agar $X$ va $Y$ mustaqil bo'lsa, $f(x, y)$ ni qanday ifodalash mumkin?",
+    ru:"Если $X$ и $Y$ независимы, то $f(x, y)$ можно представить как:",
+    en:"If $X$ and $Y$ are independent, then $f(x, y)$ equals:"
+  },
+  q12:{
+    uz:"Puasson taqsimoti nima uchun ishlatiladi?",
+    ru:"Для чего используют распределение Пуассона?",
+    en:"What is the Poisson distribution used for?"
+  },
+  q14:{
+    uz:"Diskret tasodifiy o'zgaruvchining barcha qiymatlari ehtimolliklarining yig'indisi:",
+    ru:"Сумма вероятностей всех значений дискретной случайной величины:",
+    en:"The sum of all probabilities for a discrete random variable:"
+  },
+  q16:{
+    uz:"$n \\to \\infty$ da $t(n)$ taqsimoti qaysi taqsimotga yaqinlashadi?",
+    ru:"К какому распределению стремится $t(n)$ при $n \\to \\infty$?",
+    en:"What distribution does $t(n)$ approach as $n \\to \\infty$?"
+  },
+  q18:{
+    uz:"$n = 2$ da $\\chi^2(2)$ taqsimoti qaysi taqsimot bilan mos keladi?",
+    ru:"При $n = 2$ распределение $\\chi^2(2)$ совпадает с каким распределением?",
+    en:"For $n = 2$, the distribution $\\chi^2(2)$ coincides with which distribution?"
+  },
+  q19:{
+    uz:"Agar $f(x,y) = f_X(x) \\cdot f_Y(y)$ bo'lsa, $X$ va $Y$ haqida nima deyish mumkin?",
+    ru:"Что можно сказать о $X$ и $Y$, если $f(x, y) = f_X(x) \\cdot f_Y(y)$?",
+    en:"What can be said about $X$ and $Y$ if $f(x, y) = f_X(x) \\cdot f_Y(y)$?"
+  },
+  q20:{
+    uz:"Birgalikdagi zichlik $f(x, y)$ dan butun tekislik bo'yicha ikki karrali integral qiymati qanday bo'lishi kerak?",
+    ru:"Каким должно быть значение двойного интеграла от совместной плотности $f(x, y)$ по всей плоскости?",
+    en:"What must be the value of the double integral of $f(x, y)$ over the entire plane?"
+  },
+  q22:{
+    uz:"Agar $X \\sim N(\\mu, \\sigma^2)$ bo'lsa, $Z = (X - \\mu)/\\sigma$ qanday taqsimotga ega?",
+    ru:"Если $X \\sim N(\\mu, \\sigma^2)$, какое распределение имеет $Z = (X - \\mu)/\\sigma$?",
+    en:"If $X \\sim N(\\mu, \\sigma^2)$, what distribution does $Z = (X - \\mu)/\\sigma$ have?"
+  },
+  q23:{
+    uz:"Ikki tasodifiy o'zgaruvchi qachon mustaqil deb ataladi?",
+    ru:"Когда две случайные величины называются независимыми?",
+    en:"When are two random variables independent?"
+  },
+  q24:{
+    uz:"Diskret tasodifiy o'zgaruvchining matematik kutilmasi nima?",
+    ru:"Что такое математическое ожидание дискретной случайной величины?",
+    en:"What is the expectation of a discrete random variable?"
+  },
+  q26:{
+    uz:"Binomial taqsimot qachon qo'llaniladi?",
+    ru:"Когда применяется биномиальное распределение?",
+    en:"When is the binomial distribution used?"
+  },
+  q27:{
+    uz:"$X_1, X_2, X_3$ — bog'liqsiz, $X_i \\sim N(0, 1)$. Qaysi miqdor $\\chi^2$ taqsimotga ega?",
+    ru:"$X_1, X_2, X_3$ — независимые, $X_i \\sim N(0, 1)$. Какая величина имеет распределение $\\chi^2$?",
+    en:"$X_1, X_2, X_3$ are independent, $X_i \\sim N(0, 1)$. Which variable has a $\\chi^2$ distribution?"
+  },
+  q28:{
+    uz:"$Y_1, Y_2$ — bog'liqsiz, $Y_i \\sim N(\\mu, \\sigma^2)$. Qaysi miqdor $\\chi^2$ taqsimotga ega?",
+    ru:"$Y_1, Y_2$ — независимые, $Y_i \\sim N(\\mu, \\sigma^2)$. Какая величина имеет распределение $\\chi^2$?",
+    en:"$Y_1, Y_2$ are independent, $Y_i \\sim N(\\mu, \\sigma^2)$. Which variable has a $\\chi^2$ distribution?"
+  }
+};
+
+
+// =========================================================
+//  TRILINGUAL TEXT BLOCK
+// =========================================================
+function trilang(t){
+  return `<div class="q-text"><span class="lang-tag">UZB:</span> ${t.uz}</div>
+<div class="q-text"><span class="lang-tag">RU:</span> ${t.ru}</div>
+<div class="q-text"><span class="lang-tag">ENG:</span> ${t.en}</div>`;
+}
+
+// =========================================================
+//  QUESTION BUILDERS
+//  Each builder returns: { html, answer, solutionHTML }
+//  for randomizable questions; for static ones we still
+//  build dynamically so layout is identical.
+// =========================================================
+
+// Build a single-choice card
+function singleCard(num, points, textHtml, opts, correctKey, solutionHtml){
+  let optsHtml = opts.map(o =>
+    `<label class="option"><input type="radio" name="q${num}" value="${o.k}"><span>${o.k}. &nbsp; ${o.t}</span></label>`
+  ).join('');
+  return {
+    html: `<div class="question-card" id="card-q${num}">
+      <div class="q-head"><div class="q-num">Savol ${num} / Вопрос ${num} / Question ${num}</div><div class="q-pts">${points} ball</div></div>
+      ${textHtml}
+      <div class="options-box">${optsHtml}</div>
+      <div id="fb-q${num}" class="feedback"></div>
+      <button class="solution-toggle" id="sol-btn-q${num}" style="display:none" onclick="toggleSol(${num})">Yechim / Решение / Solution</button>
+      <div class="solution" id="sol-q${num}">${solutionHtml}</div>
+    </div>`,
+    answer: correctKey
+  };
+}
+
+function step(label, formula){
+  return `<div class="step"><b>${label}:</b> ${formula}</div>`;
+}
+function ans(formula){
+  return `<div class="ans">${formula}</div>`;
+}
+
+// =========================================================
+//  Q1: chi^2(n1) + chi^2(n2)
+// =========================================================
+function buildQ1(){
+  const {n1,n2} = P.q1;
+  const text = trilang({
+    uz:`$\\chi^2(${n1})$ va $\\chi^2(${n2})$ mustaqil bo'lsa, ularning yig'indisi qanday taqsimotga ega?`,
+    ru:`Если $\\chi^2(${n1})$ и $\\chi^2(${n2})$ независимы, какое распределение имеет их сумма?`,
+    en:`If $\\chi^2(${n1})$ and $\\chi^2(${n2})$ are independent, what distribution does their sum have?`
+  });
+  const opts = [
+    {k:'a', t:`$t(${n1+n2})$`},
+    {k:'b', t:`$\\chi^2(${n1+n2})$`},
+    {k:'c', t:`$F(${n1}, ${n2})$`},
+    {k:'d', t:`$\\chi^2(${n1*n2})$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>UZB: Ikki mustaqil $\\chi^2$ taqsimotning yig'indisi erkin daraja yig'indisi bilan $\\chi^2$ taqsimot beradi.</p>
+    <p>RU: Сумма двух независимых $\\chi^2$ величин снова имеет $\\chi^2$ распределение со степенью, равной сумме.</p>
+    <p>EN: The sum of independent chi-squared variables is chi-squared with summed degrees of freedom.</p>
+    ${step('Formula', `$\\chi^2(n_1)+\\chi^2(n_2) \\sim \\chi^2(n_1+n_2)$`)}
+    ${step('Substitution', `$\\chi^2(${n1})+\\chi^2(${n2}) \\sim \\chi^2(${n1}+${n2})$`)}
+    ${ans(`$\\boxed{\\chi^2(${n1+n2})}$ &nbsp; (option b)`)}`;
+  return singleCard(1,3,text,opts,'b',sol);
+}
+
+// =========================================================
+//  Q2: T~t(n), F=T^2 ~ F(1,n)
+// =========================================================
+function buildQ2(){
+  const {n} = P.q2;
+  const text = trilang({
+    uz:`$T \\sim t(${n})$. $F = T^2$ qanday taqsimotga ega?`,
+    ru:`Пусть $T \\sim t(${n})$. Какое распределение имеет $F = T^2$?`,
+    en:`Let $T \\sim t(${n})$. What distribution does $F = T^2$ have?`
+  });
+  const opts = [
+    {k:'a', t:`$F(2, ${n})$`},
+    {k:'b', t:`$F(1, ${n})$`},
+    {k:'c', t:`$F(${n}, 1)$`},
+    {k:'d', t:`$\\chi^2(${n})$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>By definition $T = \\dfrac{Z}{\\sqrt{Y/n}}$, where $Z \\sim N(0,1)$, $Y \\sim \\chi^2(n)$, independent.</p>
+    ${step('Square it', `$T^2 = \\dfrac{Z^2}{Y/n} = \\dfrac{Z^2/1}{Y/n}$`)}
+    ${step('Note', `$Z^2 \\sim \\chi^2(1)$, $Y \\sim \\chi^2(${n})$`)}
+    ${step('F definition', `$\\dfrac{\\chi^2(1)/1}{\\chi^2(${n})/${n}} \\sim F(1, ${n})$`)}
+    ${ans(`$\\boxed{F(1, ${n})}$ &nbsp; (option b)`)}`;
+  return singleCard(2,3,text,opts,'b',sol);
+}
+
+// =========================================================
+//  Q3 (static)
+// =========================================================
+function buildQ3(){
+  const text = trilang(Q_TEXT.q3);
+  const opts = [
+    {k:'a', t:`[RU] Для нахождения дисперсии. [EN] To find variance. "Dispersiyani topish uchun."`},
+    {k:'b', t:`[RU] Для генерации случайных чисел. [EN] To generate random numbers. "Tasodifiy sonlar yaratish uchun."`},
+    {k:'c', t:`[RU] Для подсчёта количества событий. [EN] To count number of events. "Hodisalar sonini hisoblash uchun."`},
+    {k:'d', t:`[RU] Для нахождения вероятности на отрезке. [EN] To find probability on an interval. "Segmentdagi ehtimollikni topish uchun."`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Zichlik funksiyasi $f(x)$ orqali oraliqdagi ehtimollik integral bilan topiladi:</p>
+    ${step('Formula', `$P(a \\le X \\le b) = \\int_a^b f(x)\\,dx$`)}
+    <p>Bu zichlik funksiyasining asosiy ma'nosidir.</p>
+    ${ans(`(d) Segmentdagi ehtimollikni topish uchun`)}`;
+  return singleCard(3,3,text,opts,'d',sol);
+}
+
+
+// =========================================================
+//  Q4 (static)
+// =========================================================
+function buildQ4(){
+  const text = trilang(Q_TEXT.q4);
+  const opts = [
+    {k:'a', t:`[RU] При выборке без возвращения из конечной совокупности. [EN] Sampling without replacement from a finite population. "Cheklangan to'plamdan qaytarsiz tanlashda."`},
+    {k:'b', t:`[RU] Только для временных рядов. [EN] Only for time series.`},
+    {k:'c', t:`[RU] Для непрерывных величин. [EN] For continuous variables.`},
+    {k:'d', t:`[RU] В задачах с бесконечным числом испытаний. [EN] With infinite trials.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Gipergeometrik taqsimot $N$ ta elementdan iborat to'plamdan $n$ ta elementni <b>qaytarsiz</b> tanlashda muvaffaqiyatlar sonini modellashtiradi.</p>
+    ${step('PMF', `$P(X=k) = \\dfrac{C_K^k \\, C_{N-K}^{n-k}}{C_N^n}$`)}
+    ${ans(`(a) Cheklangan to'plamdan qaytarsiz tanlashda`)}`;
+  return singleCard(4,3,text,opts,'a',sol);
+}
+
+// =========================================================
+//  Q5: Match densities (static, 5 items, 0.6 pts each)
+// =========================================================
+function buildQ5(){
+  const text = trilang({
+    uz:`Quyida uzluksiz taqsimotlar zichlik funksiyalari keltirilgan. Moslikni o'rnating:`,
+    ru:`Ниже приведены формулы плотностей непрерывных распределений. Установите соответствие:`,
+    en:`Below are the density functions of continuous distributions. Match each function:`
+  });
+  const items = [
+    {id:'q5_1', f:`$f(x) = 2e^{-2x}, \\; x \\ge 0$`, ans:'exponential'},
+    {id:'q5_2', f:`$f(x) = \\dfrac{1}{5}, \\; x \\in [-3, 2]$`, ans:'uniform'},
+    {id:'q5_3', f:`$f(x) = \\dfrac{1}{\\pi\\sqrt{x(1-x)}}, \\; 0 < x < 1$`, ans:'arcsine'},
+    {id:'q5_4', f:`$f(x) = \\dfrac{1}{0.5\\sqrt{2\\pi}} e^{-\\frac{(x-3)^2}{2 \\cdot 0.5^2}}$`, ans:'normal'},
+    {id:'q5_5', f:`$f(x) = \\dfrac{1}{\\sqrt{2\\pi}} e^{-\\frac{x^2}{2}}$`, ans:'std_normal'}
+  ];
+  const optList = [
+    ['exponential','Показательное / Exponential'],
+    ['arcsine','Арксинус / Arcsine'],
+    ['std_normal','Стандартное нормальное / Standard normal'],
+    ['uniform','Равномерное / Uniform'],
+    ['normal','Нормальное / Normal']
+  ];
+  const rows = items.map(it => `<tr>
+    <td class="match-formula">${it.f}</td>
+    <td><select class="match-select" id="${it.id}"><option value="">— Tanlang / Выберите / Select —</option>${optList.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select></td>
+  </tr>`).join('');
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Har bir formulani tanib olish uchun zichlik shaklini eslang:</p>
+    ${step('1', `$2e^{-2x}$ — eksponensial $\\lambda=2$`)}
+    ${step('2', `$1/5$ konstant $[-3,2]$ da — tekis taqsimot, uzunlik $= 5$`)}
+    ${step('3', `$\\dfrac{1}{\\pi\\sqrt{x(1-x)}}$ — arksinus qonuni $(0,1)$ da`)}
+    ${step('4', `$\\dfrac{1}{\\sigma\\sqrt{2\\pi}}e^{-(x-\\mu)^2/(2\\sigma^2)}$ — normal $N(3, 0.25)$`)}
+    ${step('5', `$\\dfrac{1}{\\sqrt{2\\pi}}e^{-x^2/2}$ — standart normal $N(0,1)$`)}`;
+  return {
+    html: `<div class="question-card" id="card-q5">
+      <div class="q-head"><div class="q-num">Savol 5 / Вопрос 5 / Question 5</div><div class="q-pts">3 ball &middot; 0.6 / moslik</div></div>
+      ${text}
+      <table class="match-table">${rows}</table>
+      <div id="fb-q5" class="feedback"></div>
+      <button class="solution-toggle" id="sol-btn-q5" style="display:none" onclick="toggleSol(5)">Yechim / Решение / Solution</button>
+      <div class="solution" id="sol-q5">${sol}</div>
+    </div>`,
+    matchAnswers: Object.fromEntries(items.map(i=>[i.id,i.ans])),
+    matchPerItem: 0.6,
+    matchTotal: 3,
+    isMatch: true,
+    qNum: 5
+  };
+}
+
+
+// =========================================================
+//  Q6: Match numerical characteristics (8 items, 0.375 each)
+// =========================================================
+function buildQ6(){
+  const text = trilang({
+    uz:`Quyida uzluksiz tasodifiy miqdorlarning sonli xarakteristikalari formulalari keltirilgan. Moslikni o'rnating:`,
+    ru:`Ниже приведены формулы числовых характеристик непрерывных случайных величин. Установите соответствие:`,
+    en:`Below are formulas for numerical characteristics of continuous random variables. Match each formula:`
+  });
+  const items = [
+    {id:'q6_1', f:`$\\sigma_X = \\sqrt{\\text{Var}(X)}$`, ans:'std_dev'},
+    {id:'q6_2', f:`$\\rho_{X,Y} = \\dfrac{\\text{Cov}(X,Y)}{\\sigma_X \\sigma_Y}$`, ans:'correlation'},
+    {id:'q6_3', f:`$\\gamma_2 = \\dfrac{\\mathbb{E}[(X - \\mathbb{E}[X])^4]}{\\sigma_X^4} - 3$`, ans:'excess'},
+    {id:'q6_4', f:`$m = \\arg\\max_x f(x)$`, ans:'mode'},
+    {id:'q6_5', f:`$\\mathbb{E}[X] = \\int_{-\\infty}^{+\\infty} x f(x) \\, dx$`, ans:'expected_value'},
+    {id:'q6_6', f:`$\\gamma_1 = \\dfrac{\\mathbb{E}[(X - \\mathbb{E}[X])^3]}{\\sigma_X^3}$`, ans:'skewness'},
+    {id:'q6_7', f:`$\\text{Cov}(X,Y) = \\mathbb{E}[(X - \\mathbb{E}[X])(Y - \\mathbb{E}[Y])]$`, ans:'covariance'},
+    {id:'q6_8', f:`$\\text{Var}(X) = \\int_{-\\infty}^{+\\infty} (x - \\mathbb{E}[X])^2 f(x) \\, dx$`, ans:'variance'}
+  ];
+  const optList = [
+    ['mode','Мода / Mode'],
+    ['skewness','Асимметрия / Skewness'],
+    ['correlation','Корреляция / Correlation'],
+    ['expected_value','Мат. ожидание / Expected value'],
+    ['std_dev','Ст. отклонение / Std deviation'],
+    ['excess','Эксцесс / Excess kurtosis'],
+    ['covariance','Ковариация / Covariance'],
+    ['variance','Дисперсия / Variance']
+  ];
+  const rows = items.map(it => `<tr>
+    <td class="match-formula">${it.f}</td>
+    <td><select class="match-select" id="${it.id}"><option value="">— Tanlang / Выберите / Select —</option>${optList.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select></td>
+  </tr>`).join('');
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    ${step('1', `Quadrat ildiz dispersiyadan — Standart og'ish (Std deviation)`)}
+    ${step('2', `Cov / (σ·σ) — Korrelyatsiya koeffitsienti`)}
+    ${step('3', `4-tartibli markaziy moment / σ⁴ − 3 — Ekstsess`)}
+    ${step('4', `argmax f(x) — Moda`)}
+    ${step('5', `∫ x f(x) dx — Matematik kutilma`)}
+    ${step('6', `3-tartibli markaziy moment / σ³ — Asimmetriya`)}
+    ${step('7', `Mahsulotlar markaziy momenti — Kovariatsiya`)}
+    ${step('8', `∫ (x−E[X])² f(x) dx — Dispersiya`)}`;
+  return {
+    html: `<div class="question-card" id="card-q6">
+      <div class="q-head"><div class="q-num">Savol 6 / Вопрос 6 / Question 6</div><div class="q-pts">3 ball &middot; 0.375 / moslik</div></div>
+      ${text}
+      <table class="match-table">${rows}</table>
+      <div id="fb-q6" class="feedback"></div>
+      <button class="solution-toggle" id="sol-btn-q6" style="display:none" onclick="toggleSol(6)">Yechim / Решение / Solution</button>
+      <div class="solution" id="sol-q6">${sol}</div>
+    </div>`,
+    matchAnswers: Object.fromEntries(items.map(i=>[i.id,i.ans])),
+    matchPerItem: 0.375,
+    matchTotal: 3,
+    isMatch: true,
+    qNum: 6
+  };
+}
+
+// =========================================================
+//  Q7 (static)
+// =========================================================
+function buildQ7(){
+  const text = trilang(Q_TEXT.q7);
+  const opts = [
+    {k:'a', t:`[RU] Условную вероятность $X$ при фиксированном $Y$. [EN] Conditional probability of $X$ given $Y$.`},
+    {k:'b', t:`[RU] Совместное распределение $X$ и $Y$. [EN] Joint distribution of $X$ and $Y$.`},
+    {k:'c', t:`[RU] Плотность $X$, независимо от $Y$. [EN] Density of $X$ regardless of $Y$.`},
+    {k:'d', t:`[RU] Плотность только для дискретных величин. [EN] Density for discrete values only.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Marginal zichlik birgalikdagi zichlikning $Y$ bo'yicha integralidan kelib chiqadi:</p>
+    ${step('Formula', `$f_X(x) = \\int_{-\\infty}^{+\\infty} f(x,y)\\,dy$`)}
+    <p>U $Y$ ga bog'liq emas — faqat $X$ ning marginal taqsimotini tasvirlaydi.</p>
+    ${ans(`(c) Density of $X$ regardless of $Y$`)}`;
+  return singleCard(7,3,text,opts,'c',sol);
+}
+
+
+// =========================================================
+//  Q8: Match discrete PMFs (6 items, 0.5 each)
+// =========================================================
+function buildQ8(){
+  const text = trilang({
+    uz:`Quyida diskret taqsimotlar ehtimollik formulalari (PMF) keltirilgan. Moslikni o'rnating:`,
+    ru:`Ниже приведены формулы вероятностей дискретных распределений (PMF). Установите соответствие:`,
+    en:`Below are probability mass functions (PMFs) of discrete distributions. Match each formula:`
+  });
+  const items = [
+    {id:'q8_1', f:`$P(X=k) = \\dfrac{1}{n}, \\; k = 1,\\ldots,n$`, ans:'uniform_discrete'},
+    {id:'q8_2', f:`$P(X=k) = C_n^k p^k (1-p)^{n-k}$`, ans:'binomial'},
+    {id:'q8_3', f:`$P(X=k) = \\dfrac{e^{-\\lambda} \\lambda^k}{k!}$`, ans:'poisson'},
+    {id:'q8_4', f:`$P(X=k) = p(1-p)^{k-1}, \\; k = 1,2,3,\\ldots$`, ans:'geometric'},
+    {id:'q8_5', f:`$P(X=k) = \\begin{cases} 1, & k = c \\\\ 0, & k \\ne c \\end{cases}$`, ans:'degenerate'},
+    {id:'q8_6', f:`$P(X=k) = \\dfrac{C_K^k \\, C_{N-K}^{n-k}}{C_N^n}$`, ans:'hypergeometric'}
+  ];
+  const optList = [
+    ['hypergeometric','Гипергеометрическое / Hypergeometric'],
+    ['poisson','Пуассона / Poisson'],
+    ['degenerate','Дегенеративное / Degenerate'],
+    ['geometric','Геометрическое / Geometric'],
+    ['binomial','Биномиальное / Binomial'],
+    ['uniform_discrete','Равномерное / Uniform']
+  ];
+  const rows = items.map(it => `<tr>
+    <td class="match-formula">${it.f}</td>
+    <td><select class="match-select" id="${it.id}"><option value="">— Tanlang / Выберите / Select —</option>${optList.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select></td>
+  </tr>`).join('');
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    ${step('1', `Konstant $1/n$ — Diskret tekis`)}
+    ${step('2', `Binomial koeffitsientli $C_n^k$ — Binomial`)}
+    ${step('3', `$e^{-\\lambda}\\lambda^k/k!$ — Puasson`)}
+    ${step('4', `$p(1-p)^{k-1}$ — Geometrik`)}
+    ${step('5', `Yagona qiymatga jamlangan — Degenerativ`)}
+    ${step('6', `Kombinatsiyalar nisbati — Gipergeometrik`)}`;
+  return {
+    html: `<div class="question-card" id="card-q8">
+      <div class="q-head"><div class="q-num">Savol 8 / Вопрос 8 / Question 8</div><div class="q-pts">3 ball &middot; 0.5 / moslik</div></div>
+      ${text}
+      <table class="match-table">${rows}</table>
+      <div id="fb-q8" class="feedback"></div>
+      <button class="solution-toggle" id="sol-btn-q8" style="display:none" onclick="toggleSol(8)">Yechim / Решение / Solution</button>
+      <div class="solution" id="sol-q8">${sol}</div>
+    </div>`,
+    matchAnswers: Object.fromEntries(items.map(i=>[i.id,i.ans])),
+    matchPerItem: 0.5,
+    matchTotal: 3,
+    isMatch: true,
+    qNum: 8
+  };
+}
+
+// =========================================================
+//  Q9 (static)
+// =========================================================
+function buildQ9(){
+  const text = trilang(Q_TEXT.q9);
+  const opts = [
+    {k:'a', t:`[RU] Мат. ожидание = медиана. [EN] Mean equals median.`},
+    {k:'b', t:`[RU] Дисперсия всегда 1. [EN] Variance always 1.`},
+    {k:'c', t:`[RU] Сумма большого числа независимых сл. величин стремится к нормальному распределению. [EN] Sum of many random variables → Normal. "Ko'p sonli tasodifiy o'zgaruvchilar yig'indisi normal taqsimotga yaqinlashadi."`},
+    {k:'d', t:`[RU] Все величины распределены равномерно. [EN] All uniform.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Markaziy chegaraviy teorema (CLT): bir xil taqsimlangan $n$ ta mustaqil $X_i$ uchun</p>
+    ${step('Formula', `$\\dfrac{\\sum_{i=1}^n X_i - n\\mu}{\\sigma\\sqrt{n}} \\xrightarrow{d} N(0, 1), \\; n \\to \\infty$`)}
+    <p>Boshqacha aytganda, normallashgan yig'indi standart normal taqsimotga yaqinlashadi.</p>
+    ${ans(`(c)`)}`;
+  return singleCard(9,3,text,opts,'c',sol);
+}
+
+// =========================================================
+//  Q10 (static)
+// =========================================================
+function buildQ10(){
+  const text = trilang(Q_TEXT.q10);
+  const opts = [
+    {k:'a', t:`$f_X(x) \\cdot f_Y(y)$`},
+    {k:'b', t:`$f_X(x) + f_Y(y)$`},
+    {k:'c', t:`$f_X(x) - f_Y(y)$`},
+    {k:'d', t:`$f_X(x) / f_Y(y)$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Mustaqillik ta'rifi: $X$ va $Y$ mustaqil $\\Leftrightarrow$ birgalikdagi zichlik marginal zichliklar ko'paytmasiga teng:</p>
+    ${step('Formula', `$f(x,y) = f_X(x)\\cdot f_Y(y)$`)}
+    ${ans(`(a) $f_X(x)\\cdot f_Y(y)$`)}`;
+  return singleCard(10,3,text,opts,'a',sol);
+}
+
+
+// =========================================================
+//  Q11: D[chi^2(n)] = 2n
+// =========================================================
+function buildQ11(){
+  const {n} = P.q11;
+  const correct = 2*n;
+  // Build distractors making sure they differ
+  const distractors = new Set([n, n+2, 2*n+2, 2*n-2, n*n, Math.max(1, n-1)]);
+  distractors.delete(correct);
+  const wrongs = [...distractors].slice(0,3);
+  // Mix and find correct position
+  const choices = [...wrongs, correct];
+  // shuffle deterministically
+  for(let i=choices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[choices[i],choices[j]]=[choices[j],choices[i]];}
+  const correctIdx = choices.indexOf(correct);
+  const keys = ['a','b','c','d'];
+  const correctKey = keys[correctIdx];
+  const opts = choices.map((c,i)=>({k:keys[i], t:`$${c}$`}));
+  const text = trilang({
+    uz:`Agar $T \\sim \\chi^2(${n})$ bo'lsa, $D[T]$ nimaga teng?`,
+    ru:`Если $T \\sim \\chi^2(${n})$, чему равно $D[T]$?`,
+    en:`If $T \\sim \\chi^2(${n})$, what is $D[T]$?`
+  });
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$\\chi^2(n)$ taqsimotining sonli xarakteristikalari:</p>
+    ${step('Mat. kutilma', `$\\mathbb{E}[\\chi^2(n)] = n$`)}
+    ${step('Dispersiya', `$D[\\chi^2(n)] = 2n$`)}
+    ${step('Substitution', `$D[\\chi^2(${n})] = 2 \\cdot ${n} = ${correct}$`)}
+    ${ans(`$\\boxed{${correct}}$ &nbsp; (option ${correctKey})`)}`;
+  return singleCard(11,3,text,opts,correctKey,sol);
+}
+
+// =========================================================
+//  Q12 (static)
+// =========================================================
+function buildQ12(){
+  const text = trilang(Q_TEXT.q12);
+  const opts = [
+    {k:'a', t:`[RU] Моделирование редких событий за фиксированный интервал. [EN] Rare events in fixed interval. "Belgilangan oraliqda kam uchraydigan hodisalar."`},
+    {k:'b', t:`[RU] Анализ линейной регрессии. [EN] Linear regression analysis.`},
+    {k:'c', t:`[RU] Описание симметричных данных. [EN] Symmetric data.`},
+    {k:'d', t:`[RU] Вычисление медианы. [EN] Calculating median.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Puasson taqsimoti $\\lambda$ — vaqt birligida kutilayotgan hodisalar soni bilan tavsiflanadi:</p>
+    ${step('PMF', `$P(X=k) = \\dfrac{e^{-\\lambda}\\lambda^k}{k!}$`)}
+    ${step('Properties', `$\\mathbb{E}[X] = D[X] = \\lambda$`)}
+    <p>Klassik misollar: chaqiruvlar markazidagi qo'ng'iroqlar, kitobdagi xatolar, radioaktiv parchalanish.</p>
+    ${ans(`(a)`)}`;
+  return singleCard(12,3,text,opts,'a',sol);
+}
+
+// =========================================================
+//  Q13: t-distribution from N(0,1) and chi^2(n)
+// =========================================================
+function buildQ13(){
+  const {n} = P.q13;
+  const text = trilang({
+    uz:`$X \\sim N(0,1)$, $Y \\sim \\chi^2(${n})$, $X$ va $Y$ bog'liqsiz. Qaysi miqdor $t$-taqsimotga ega?`,
+    ru:`$X \\sim N(0,1)$, $Y \\sim \\chi^2(${n})$, $X$ и $Y$ независимы. Какая величина имеет $t$-распределение?`,
+    en:`$X \\sim N(0,1)$, $Y \\sim \\chi^2(${n})$, $X$ and $Y$ independent. Which has $t$-distribution?`
+  });
+  const opts = [
+    {k:'a', t:`$X/Y$`},
+    {k:'b', t:`$X / \\sqrt{Y/${n}}$`},
+    {k:'c', t:`$Y/X$`},
+    {k:'d', t:`$X \\cdot Y$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$t$-taqsimotning ta'rifi:</p>
+    ${step('Definition', `$T = \\dfrac{Z}{\\sqrt{Y/n}}, \\; Z \\sim N(0,1), \\; Y \\sim \\chi^2(n)$`)}
+    ${step('Substitute', `$T = \\dfrac{X}{\\sqrt{Y/${n}}} \\sim t(${n})$`)}
+    ${ans(`(b) $X/\\sqrt{Y/${n}}$`)}`;
+  return singleCard(13,3,text,opts,'b',sol);
+}
+
+// =========================================================
+//  Q14 (static)
+// =========================================================
+function buildQ14(){
+  const text = trilang(Q_TEXT.q14);
+  const opts = [
+    {k:'a', t:`[RU] Равна 0. [EN] Zero.`},
+    {k:'b', t:`[RU] Меньше 1. [EN] Less than 1.`},
+    {k:'c', t:`[RU] Больше 1. [EN] Greater than 1.`},
+    {k:'d', t:`[RU] Равна 1. [EN] Equals 1.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Diskret tasodifiy o'zgaruvchining barcha mumkin bo'lgan qiymatlari ehtimolliklari yig'indisi har doim 1 ga teng:</p>
+    ${step('Axiom', `$\\sum_{i} P(X = x_i) = 1$`)}
+    <p>Bu Kolmogorov aksiomasidan kelib chiqadi.</p>
+    ${ans(`(d) 1 ga teng`)}`;
+  return singleCard(14,3,text,opts,'d',sol);
+}
+
+
+// =========================================================
+//  Q15: Match graphs (static)
+// =========================================================
+function buildQ15(){
+  const text = trilang({
+    uz:`Quyida taqsimotlar nomlari va ularga mos zichlik grafiklarining tavsifi berilgan. Moslikni o'rnating:`,
+    ru:`Ниже приведены названия распределений и описание их графиков плотности. Установите соответствие:`,
+    en:`Below are the names of distributions and graphs of their densities. Match each distribution:`
+  });
+  const graphs = `<div class="graphs-grid">
+    <div class="graph-item"><svg viewBox="0 0 120 80" width="120" height="80"><line x1="15" y1="70" x2="115" y2="70" stroke="#aaa"/><line x1="15" y1="10" x2="15" y2="70" stroke="#aaa"/><path d="M 15 15 Q 30 55 110 68" fill="none" stroke="#d69e2e" stroke-width="1.8"/></svg><div class="graph-label">(1)</div></div>
+    <div class="graph-item"><svg viewBox="0 0 120 80" width="120" height="80"><line x1="15" y1="70" x2="115" y2="70" stroke="#aaa"/><line x1="65" y1="10" x2="65" y2="70" stroke="#aaa" stroke-dasharray="2,2"/><path d="M 15 69 Q 50 69 55 50 T 65 15 T 75 50 T 115 69" fill="none" stroke="#5a67d8" stroke-width="1.8"/></svg><div class="graph-label">(2)</div></div>
+    <div class="graph-item"><svg viewBox="0 0 120 80" width="120" height="80"><line x1="15" y1="70" x2="115" y2="70" stroke="#aaa"/><path d="M 30 70 L 30 25 L 95 25 L 95 70" fill="none" stroke="#38a169" stroke-width="1.8"/></svg><div class="graph-label">(3)</div></div>
+    <div class="graph-item"><svg viewBox="0 0 120 80" width="120" height="80"><line x1="15" y1="70" x2="115" y2="70" stroke="#aaa"/><line x1="75" y1="10" x2="75" y2="70" stroke="#aaa" stroke-dasharray="2,2"/><path d="M 15 69 L 45 69 Q 65 69 70 45 T 75 12 T 80 45 T 105 69 L 115 69" fill="none" stroke="#4a5568" stroke-width="1.8"/></svg><div class="graph-label">(4)</div></div>
+    <div class="graph-item"><svg viewBox="0 0 120 80" width="120" height="80"><line x1="15" y1="70" x2="115" y2="70" stroke="#aaa"/><path d="M 20 12 Q 22 55 65 55 T 110 12" fill="none" stroke="#e53e3e" stroke-width="1.8"/></svg><div class="graph-label">(5)</div></div>
+  </div>`;
+  const items = [
+    {id:'q15_1', f:`Стандартное нормальное / Standard normal $N(0,1)$`, ans:'2'},
+    {id:'q15_2', f:`Закон арксинуса / Arcsine`, ans:'5'},
+    {id:'q15_3', f:`Показательное / Exponential`, ans:'1'},
+    {id:'q15_4', f:`Равномерное на отрезке / Uniform`, ans:'3'},
+    {id:'q15_5', f:`Нормальное / Normal $N(\\mu,\\sigma^2)$`, ans:'4'}
+  ];
+  const optList = [['1','График (1)'],['2','График (2)'],['3','График (3)'],['4','График (4)'],['5','График (5)']];
+  const rows = items.map(it => `<tr>
+    <td class="match-formula">${it.f}</td>
+    <td><select class="match-select" id="${it.id}"><option value="">— Tanlang / Выберите / Select —</option>${optList.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select></td>
+  </tr>`).join('');
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    ${step('(1)', `Tushuvchi eksponensial — Exponential`)}
+    ${step('(2)', `Markazda 0, simmetrik qo'ng'iroqsimon — Standard normal`)}
+    ${step('(3)', `To'rtburchak — Uniform $[a,b]$`)}
+    ${step('(4)', `Markazda $\\mu$, simmetrik — Normal $N(\\mu,\\sigma^2)$`)}
+    ${step('(5)', `Chetlarda yuqori, o'rtada past — Arcsine`)}`;
+  return {
+    html: `<div class="question-card" id="card-q15">
+      <div class="q-head"><div class="q-num">Savol 15 / Вопрос 15 / Question 15</div><div class="q-pts">3 ball &middot; 0.6 / moslik</div></div>
+      ${text}
+      ${graphs}
+      <table class="match-table">${rows}</table>
+      <div id="fb-q15" class="feedback"></div>
+      <button class="solution-toggle" id="sol-btn-q15" style="display:none" onclick="toggleSol(15)">Yechim / Решение / Solution</button>
+      <div class="solution" id="sol-q15">${sol}</div>
+    </div>`,
+    matchAnswers: Object.fromEntries(items.map(i=>[i.id,i.ans])),
+    matchPerItem: 0.6,
+    matchTotal: 3,
+    isMatch: true,
+    qNum: 15
+  };
+}
+
+// =========================================================
+//  Q16 (static)
+// =========================================================
+function buildQ16(){
+  const text = trilang(Q_TEXT.q16);
+  const opts = [
+    {k:'a', t:`$F(n, 1)$`},
+    {k:'b', t:`$N(0, 1)$`},
+    {k:'c', t:`$\\chi^2(1)$`},
+    {k:'d', t:`$F(1, n)$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$t(n)$ taqsimotning ta'rifi: $T_n = \\dfrac{Z}{\\sqrt{Y_n/n}}$, bu yerda $Y_n \\sim \\chi^2(n)$.</p>
+    ${step('Limit', `$\\dfrac{Y_n}{n} \\xrightarrow{P} 1, \\; n \\to \\infty$`)}
+    ${step('Limit form', `$T_n \\xrightarrow{d} Z \\sim N(0,1)$`)}
+    ${ans(`(b) $N(0,1)$`)}`;
+  return singleCard(16,3,text,opts,'b',sol);
+}
+
+// =========================================================
+//  Q17: chi^2(a) + chi^2(b) (randomized)
+// =========================================================
+function buildQ17(){
+  const {a,b} = P.q17;
+  const sum = a+b;
+  const text = trilang({
+    uz:`$\\chi^2(${a})$ va $\\chi^2(${b})$ mustaqil. Ularning yig'indisi qanday taqsimotga ega?`,
+    ru:`$\\chi^2(${a})$ и $\\chi^2(${b})$ независимы. Какое распределение имеет их сумма?`,
+    en:`$\\chi^2(${a})$ and $\\chi^2(${b})$ are independent. What distribution does their sum have?`
+  });
+  const opts = [
+    {k:'a', t:`$t(${sum})$`},
+    {k:'b', t:`$\\chi^2(${Math.abs(a-b) || 1})$`},
+    {k:'c', t:`$F(${a}, ${b})$`},
+    {k:'d', t:`$\\chi^2(${sum})$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Mustaqil $\\chi^2$ ning yig'indisi xossasi:</p>
+    ${step('Property', `$\\chi^2(n_1) + \\chi^2(n_2) \\sim \\chi^2(n_1 + n_2)$`)}
+    ${step('Substitute', `$\\chi^2(${a}) + \\chi^2(${b}) \\sim \\chi^2(${a}+${b}) = \\chi^2(${sum})$`)}
+    ${ans(`(d) $\\chi^2(${sum})$`)}`;
+  return singleCard(17,3,text,opts,'d',sol);
+}
+
+// =========================================================
+//  Q18 (static)
+// =========================================================
+function buildQ18(){
+  const text = trilang(Q_TEXT.q18);
+  const opts = [
+    {k:'a', t:`Стьюдента / Student $t$`},
+    {k:'b', t:`Фишера / Fisher $F$`},
+    {k:'c', t:`Eksponensial $\\lambda = 1/2$ / Exponential $\\lambda=1/2$`},
+    {k:'d', t:`Normal $N(\\mu,\\sigma^2)$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$\\chi^2(n)$ — bu Gamma taqsimotning xususiy holi: $\\Gamma(n/2, 1/2)$.</p>
+    ${step('For n=2', `$\\chi^2(2) = \\Gamma(1, 1/2)$`)}
+    <p>$\\Gamma(1,\\lambda)$ — bu eksponensial taqsimot $\\text{Exp}(\\lambda)$. Demak, $\\chi^2(2) \\sim \\text{Exp}(1/2)$.</p>
+    ${step('PDF', `$f(x) = \\dfrac{1}{2} e^{-x/2}, \\; x \\ge 0$`)}
+    ${ans(`(c) Eksponensial $\\lambda=1/2$`)}`;
+  return singleCard(18,3,text,opts,'c',sol);
+}
+
+
+// =========================================================
+//  Q19 (static)
+// =========================================================
+function buildQ19(){
+  const text = trilang(Q_TEXT.q19);
+  const opts = [
+    {k:'a', t:`[RU] X и Y зависимы. [EN] X and Y dependent.`},
+    {k:'b', t:`[RU] Маргинальная плотность = 0. [EN] Marginal = 0.`},
+    {k:'c', t:`[RU] Маргинальная плотность не существует. [EN] Marginal does not exist.`},
+    {k:'d', t:`[RU] X и Y независимы. [EN] X and Y independent.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Mustaqillik kriteriysi:</p>
+    ${step('Definition', `$f(x,y) = f_X(x) \\cdot f_Y(y) \\Leftrightarrow X \\text{ va } Y \\text{ mustaqil}$`)}
+    ${ans(`(d) X va Y mustaqil`)}`;
+  return singleCard(19,3,text,opts,'d',sol);
+}
+
+// =========================================================
+//  Q20 (static)
+// =========================================================
+function buildQ20(){
+  const text = trilang(Q_TEXT.q20);
+  const opts = [
+    {k:'a', t:`$0$`},
+    {k:'b', t:`$\\infty$`},
+    {k:'c', t:`Integrallash sohasiga bog'liq / Зависит от области`},
+    {k:'d', t:`$1$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Birgalikdagi zichlik aksiomasi (normallash sharti):</p>
+    ${step('Axiom', `$\\int_{-\\infty}^{+\\infty}\\int_{-\\infty}^{+\\infty} f(x,y)\\, dx\\, dy = 1$`)}
+    <p>Butun tekislikda integral 1 ga teng — chunki bu jami ehtimollik.</p>
+    ${ans(`(d) 1`)}`;
+  return singleCard(20,3,text,opts,'d',sol);
+}
+
+// =========================================================
+//  Q21: marginal of joint exponential (randomized)
+// =========================================================
+function buildQ21(){
+  const {a,b} = P.q21;
+  const A = a*b; // joint coefficient
+  const text = trilang({
+    uz:`$f(x, y) = ${A}e^{-${a===1?'':a}x-${b===1?'':b}y}$ ($x > 0, y > 0$) uchun marginal zichlik $f_X(x)$ ni toping.`,
+    ru:`Для $f(x, y) = ${A}e^{-${a===1?'':a}x-${b===1?'':b}y}$ ($x > 0, y > 0$) найдите $f_X(x)$.`,
+    en:`For $f(x, y) = ${A}e^{-${a===1?'':a}x-${b===1?'':b}y}$ ($x > 0, y > 0$), find $f_X(x)$.`
+  });
+  // Correct answer: a * e^(-ax)
+  const correctTxt = `$${a===1?'':a}e^{-${a===1?'':a}x}$`;
+  const wrong1 = `$${A}e^{-${a===1?'':a}x}$`;
+  const wrong2 = `$${b===1?'':b}e^{-${b===1?'':b}x}$`;
+  const wrong3 = `$e^{-${a===1?'':a}x-${b===1?'':b}y}$`;
+  const choices = [correctTxt, wrong1, wrong2, wrong3];
+  // shuffle
+  for(let i=choices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[choices[i],choices[j]]=[choices[j],choices[i]];}
+  const correctIdx = choices.indexOf(correctTxt);
+  const keys = ['a','b','c','d'];
+  const opts = choices.map((c,i)=>({k:keys[i], t:c}));
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Marginal zichlik $f_X(x)$ ni topish uchun $y$ bo'yicha integrallaymiz:</p>
+    ${step('Formula', `$f_X(x) = \\int_0^{\\infty} f(x,y)\\,dy = \\int_0^{\\infty} ${A}e^{-${a===1?'':a}x-${b===1?'':b}y}\\,dy$`)}
+    ${step('Factor out', `$= ${A}e^{-${a===1?'':a}x} \\int_0^{\\infty} e^{-${b===1?'':b}y}\\,dy$`)}
+    ${step('Integral', `$\\int_0^{\\infty} e^{-${b===1?'':b}y}\\,dy = \\dfrac{1}{${b}}$`)}
+    ${step('Result', `$f_X(x) = ${A}e^{-${a===1?'':a}x} \\cdot \\dfrac{1}{${b}} = ${a===1?'':a}e^{-${a===1?'':a}x}$`)}
+    ${ans(correctTxt + ` &nbsp; (option ${keys[correctIdx]})`)}`;
+  return singleCard(21,3,text,opts,keys[correctIdx],sol);
+}
+
+// =========================================================
+//  Q22 (static)
+// =========================================================
+function buildQ22(){
+  const text = trilang(Q_TEXT.q22);
+  const opts = [
+    {k:'a', t:`$N(0, 1)$`},
+    {k:'b', t:`$\\chi^2(1)$`},
+    {k:'c', t:`$F(1, 1)$`},
+    {k:'d', t:`$t(1)$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Standartlash (Z-score) jarayoni:</p>
+    ${step('Mean', `$\\mathbb{E}\\left[\\dfrac{X-\\mu}{\\sigma}\\right] = \\dfrac{\\mu - \\mu}{\\sigma} = 0$`)}
+    ${step('Variance', `$D\\left[\\dfrac{X-\\mu}{\\sigma}\\right] = \\dfrac{\\sigma^2}{\\sigma^2} = 1$`)}
+    <p>Normal taqsimotning chiziqli kombinatsiyasi yana normal — demak $Z \\sim N(0,1)$.</p>
+    ${ans(`(a) $N(0,1)$`)}`;
+  return singleCard(22,3,text,opts,'a',sol);
+}
+
+// =========================================================
+//  Q23 (static)
+// =========================================================
+function buildQ23(){
+  const text = trilang(Q_TEXT.q23);
+  const opts = [
+    {k:'a', t:`[RU] Если их мат. ожидания совпадают.`},
+    {k:'b', t:`[RU] Если они одинаково распределены.`},
+    {k:'c', t:`[RU] Если их дисперсии равны.`},
+    {k:'d', t:`[RU] Если совместное распределение = произведение маргинальных. [EN] If joint = product of marginals.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Mustaqillikning ta'rifi:</p>
+    ${step('Discrete', `$P(X = x_i, Y = y_j) = P(X = x_i) \\cdot P(Y = y_j)$`)}
+    ${step('Continuous', `$f(x,y) = f_X(x) \\cdot f_Y(y)$`)}
+    ${ans(`(d)`)}`;
+  return singleCard(23,3,text,opts,'d',sol);
+}
+
+// =========================================================
+//  Q24 (static)
+// =========================================================
+function buildQ24(){
+  const text = trilang(Q_TEXT.q24);
+  const opts = [
+    {k:'a', t:`[RU] Сумма произведений значений на их вероятности. [EN] Sum of values times their probabilities.`},
+    {k:'b', t:`[RU] Разность max и min.`},
+    {k:'c', t:`[RU] Среднее арифметическое всех значений.`},
+    {k:'d', t:`[RU] Максимальное значение.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Diskret tasodifiy o'zgaruvchi $X$ qiymat $x_i$ ni $p_i$ ehtimollik bilan qabul qilsa:</p>
+    ${step('Formula', `$\\mathbb{E}[X] = \\sum_{i} x_i \\cdot p_i$`)}
+    <p>Bu — qiymatlarning ehtimolliklarga ko'paytirilgan yig'indisi (og'irlikli o'rtacha).</p>
+    ${ans(`(a)`)}`;
+  return singleCard(24,3,text,opts,'a',sol);
+}
+
+
+// =========================================================
+//  Q25: sum of squared standardized normals
+// =========================================================
+function buildQ25(){
+  const {mu, sigma, n} = P.q25;
+  const sigma2 = sigma*sigma;
+  const text = trilang({
+    uz:`$X_1, \\ldots, X_${n} \\sim N(${mu}, ${sigma2})$ mustaqil. $W = \\sum_{i=1}^{${n}} \\left(\\dfrac{X_i-${mu}}{${sigma}}\\right)^2$ qanday taqsimotga ega?`,
+    ru:`$X_1, \\ldots, X_${n} \\sim N(${mu}, ${sigma2})$ независимы. Какое распределение имеет $W = \\sum_{i=1}^{${n}} \\left(\\dfrac{X_i-${mu}}{${sigma}}\\right)^2$?`,
+    en:`$X_1, \\ldots, X_${n} \\sim N(${mu}, ${sigma2})$ independent. What distribution does $W = \\sum_{i=1}^{${n}} \\left(\\dfrac{X_i-${mu}}{${sigma}}\\right)^2$ have?`
+  });
+  const opts = [
+    {k:'a', t:`$N(${n}, ${2*n})$`},
+    {k:'b', t:`$t(${n})$`},
+    {k:'c', t:`$\\chi^2(${n})$`},
+    {k:'d', t:`$\\chi^2(${Math.max(1,Math.floor(n/2))})$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Standartlash bilan boshlaymiz: $X_i \\sim N(${mu}, ${sigma2})$, $\\sigma = ${sigma}$.</p>
+    ${step('Standardize', `$Z_i = \\dfrac{X_i - ${mu}}{${sigma}} \\sim N(0, 1)$`)}
+    ${step('Square', `$Z_i^2 \\sim \\chi^2(1)$`)}
+    ${step('Sum', `$W = \\sum_{i=1}^{${n}} Z_i^2 \\sim \\chi^2(${n})$`)}
+    ${ans(`(c) $\\chi^2(${n})$`)}`;
+  return singleCard(25,3,text,opts,'c',sol);
+}
+
+// =========================================================
+//  Q26 (static)
+// =========================================================
+function buildQ26(){
+  const text = trilang(Q_TEXT.q26);
+  const opts = [
+    {k:'a', t:`[RU] При подсчёте успехов в n независимых испытаниях. [EN] Successes in n trials.`},
+    {k:'b', t:`[RU] Для непрерывных процессов.`},
+    {k:'c', t:`[RU] Только для нормальных величин.`},
+    {k:'d', t:`[RU] Для моделирования времени между событиями.`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Binomial taqsimot $n$ ta mustaqil Bernoulli sinovlaridagi muvaffaqiyatlar sonini hisoblaydi:</p>
+    ${step('PMF', `$P(X = k) = C_n^k p^k (1-p)^{n-k}$`)}
+    ${step('Properties', `$\\mathbb{E}[X] = np, \\quad D[X] = np(1-p)$`)}
+    ${ans(`(a)`)}`;
+  return singleCard(26,3,text,opts,'a',sol);
+}
+
+// =========================================================
+//  Q27 (static, options fixed)
+// =========================================================
+function buildQ27(){
+  const text = trilang(Q_TEXT.q27);
+  const opts = [
+    {k:'a', t:`$X_1 + X_2 + X_3$`},
+    {k:'b', t:`$X_1^2 + X_2^2 + X_3^2$`},
+    {k:'c', t:`$\\dfrac{X_1}{X_2}$`},
+    {k:'d', t:`$X_1^2 - X_2^2$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>Ta'rif: agar $Z_1, \\ldots, Z_n \\sim N(0,1)$ mustaqil, u holda</p>
+    ${step('Definition', `$\\sum_{i=1}^{n} Z_i^2 \\sim \\chi^2(n)$`)}
+    ${step('Apply n=3', `$X_1^2 + X_2^2 + X_3^2 \\sim \\chi^2(3)$`)}
+    <p>Boshqa variantlar: yig'indi $X_1+X_2+X_3 \\sim N(0,3)$ — bu normal, $\\chi^2$ emas.</p>
+    ${ans(`(b)`)}`;
+  return singleCard(27,3,text,opts,'b',sol);
+}
+
+// =========================================================
+//  Q28 (static)
+// =========================================================
+function buildQ28(){
+  const text = trilang(Q_TEXT.q28);
+  const opts = [
+    {k:'a', t:`$Y_1^2 + Y_2^2$`},
+    {k:'b', t:`$\\dfrac{Y_1 - \\mu}{\\sigma} + \\dfrac{Y_2 - \\mu}{\\sigma}$`},
+    {k:'c', t:`$\\left(\\dfrac{Y_1 - \\mu}{\\sigma}\\right)^2 + \\left(\\dfrac{Y_2 - \\mu}{\\sigma}\\right)^2$`},
+    {k:'d', t:`$\\dfrac{Y_1}{Y_2}$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$Y_i \\sim N(\\mu, \\sigma^2)$ — standart emas. $\\chi^2$ uchun $N(0,1)$ kvadratlari kerak.</p>
+    ${step('Standardize', `$\\dfrac{Y_i - \\mu}{\\sigma} \\sim N(0, 1)$`)}
+    ${step('Square', `$\\left(\\dfrac{Y_i - \\mu}{\\sigma}\\right)^2 \\sim \\chi^2(1)$`)}
+    ${step('Sum 2', `$\\left(\\dfrac{Y_1 - \\mu}{\\sigma}\\right)^2 + \\left(\\dfrac{Y_2 - \\mu}{\\sigma}\\right)^2 \\sim \\chi^2(2)$`)}
+    ${ans(`(c)`)}`;
+  return singleCard(28,3,text,opts,'c',sol);
+}
+
+// =========================================================
+//  Q29: F-distribution (randomized)
+// =========================================================
+function buildQ29(){
+  const {m,n} = P.q29;
+  const text = trilang({
+    uz:`$U \\sim \\chi^2(${m})$ va $V \\sim \\chi^2(${n})$ bog'liqsiz bo'lsa, qaysi miqdor $F$-taqsimotga ega?`,
+    ru:`Если $U \\sim \\chi^2(${m})$ и $V \\sim \\chi^2(${n})$ независимы, какая величина имеет $F$-распределение?`,
+    en:`If $U \\sim \\chi^2(${m})$ and $V \\sim \\chi^2(${n})$ are independent, which has $F$-distribution?`
+  });
+  const opts = [
+    {k:'a', t:`$\\dfrac{U}{V}$`},
+    {k:'b', t:`$\\dfrac{U/${m}}{V/${n}}$`},
+    {k:'c', t:`$U + V$`},
+    {k:'d', t:`$\\dfrac{U}{\\sqrt{V}}$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$F$-taqsimotning ta'rifi:</p>
+    ${step('Definition', `$F = \\dfrac{U/m}{V/n} \\sim F(m, n), \\; U \\sim \\chi^2(m), V \\sim \\chi^2(n)$`)}
+    ${step('Substitute', `$\\dfrac{U/${m}}{V/${n}} \\sim F(${m}, ${n})$`)}
+    <p>Eslatma: erkin daraja bo'yicha bo'lish shart!</p>
+    ${ans(`(b) $\\dfrac{U/${m}}{V/${n}}$`)}`;
+  return singleCard(29,3,text,opts,'b',sol);
+}
+
+
+// =========================================================
+//  Q30: chi^2(k) (randomized)
+// =========================================================
+function buildQ30(){
+  const {k} = P.q30;
+  const text = trilang({
+    uz:`Quyidagilardan qaysi biri $\\chi^2(${k})$ taqsimotiga ega?`,
+    ru:`Какое из следующих выражений имеет распределение $\\chi^2(${k})$?`,
+    en:`Which of the following has a $\\chi^2(${k})$ distribution?`
+  });
+  const sumZi = Array.from({length:k}, (_,i)=>`Z_${i+1}`).join(' + ');
+  const sumZi2 = Array.from({length:k}, (_,i)=>`Z_${i+1}^2`).join(' + ');
+  const opts = [
+    {k:'a', t:`$${sumZi}, \\; Z_i \\sim N(0,1)$`},
+    {k:'b', t:`$${sumZi2}, \\; Z_i \\sim N(0,1)$`},
+    {k:'c', t:`$\\dfrac{Z_1}{Z_2}, \\; Z_i \\sim N(0,1)$`},
+    {k:'d', t:`$Z_1^2 + Z_2, \\; Z_i \\sim N(0,1)$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$\\chi^2(n)$ — bu $n$ ta mustaqil $N(0,1)$ kvadratlarining yig'indisi:</p>
+    ${step('Definition', `$\\sum_{i=1}^{${k}} Z_i^2 \\sim \\chi^2(${k}), \\; Z_i \\sim N(0,1)$`)}
+    <p>Boshqa variantlar:</p>
+    <p>(a) yig'indi $Z_i$ — normal, $\\chi^2$ emas.</p>
+    <p>(c) nisbat — Koshi (Cauchy) taqsimot.</p>
+    <p>(d) aralash — kvadrat va oddiy normal.</p>
+    ${ans(`(b) $${sumZi2}$`)}`;
+  return singleCard(30,3,text,opts,'b',sol);
+}
+
+// =========================================================
+//  Q31: E[W] = k, Var[W] = 2k (randomized)
+// =========================================================
+function buildQ31(){
+  const {k} = P.q31;
+  const E = k, V = 2*k;
+  const sumZ2 = Array.from({length:k}, (_,i)=>`Z_${i+1}^2`).join(' + ');
+  const text = trilang({
+    uz:`$Z_1, \\ldots, Z_${k} \\sim N(0, 1)$ mustaqil. $W = ${sumZ2}$ bo'lsa, qaysi to'g'ri?`,
+    ru:`$Z_1, \\ldots, Z_${k} \\sim N(0, 1)$ независимы. Пусть $W = ${sumZ2}$. Что верно?`,
+    en:`$Z_1, \\ldots, Z_${k} \\sim N(0, 1)$ independent. Let $W = ${sumZ2}$. Which is correct?`
+  });
+  // Build options: correct E=k, V=2k. Distractors guaranteed distinct
+  const correctTxt = `$\\mathbb{E}[W] = ${E}, \\; D[W] = ${V}$`;
+  const wrong1 = `$\\mathbb{E}[W] = ${E}, \\; D[W] = ${E}$`; // E=V=k
+  const wrong2 = `$\\mathbb{E}[W] = ${V}, \\; D[W] = ${E}$`; // swapped
+  const wrong3 = `$\\mathbb{E}[W] = 0, \\; D[W] = ${V+1}$`;
+  const choices = [correctTxt, wrong1, wrong2, wrong3];
+  for(let i=choices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[choices[i],choices[j]]=[choices[j],choices[i]];}
+  const correctIdx = choices.indexOf(correctTxt);
+  const keys = ['a','b','c','d'];
+  const opts = choices.map((c,i)=>({k:keys[i], t:c}));
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$W = \\sum Z_i^2 \\sim \\chi^2(${k})$ (chunki $Z_i \\sim N(0,1)$ va mustaqil).</p>
+    ${step('Mean', `$\\mathbb{E}[\\chi^2(n)] = n \\Rightarrow \\mathbb{E}[W] = ${k}$`)}
+    ${step('Variance', `$D[\\chi^2(n)] = 2n \\Rightarrow D[W] = 2 \\cdot ${k} = ${V}$`)}
+    ${ans(`$\\mathbb{E}[W] = ${E}, \\; D[W] = ${V}$ &nbsp; (option ${keys[correctIdx]})`)}`;
+  return singleCard(31,3,text,opts,keys[correctIdx],sol);
+}
+
+// =========================================================
+//  Q32: t-distribution (randomized)
+// =========================================================
+function buildQ32(){
+  const {n} = P.q32;
+  const text = trilang({
+    uz:`$Z \\sim N(0,1)$ va $Y \\sim \\chi^2(${n})$ mustaqil. $T = \\dfrac{Z}{\\sqrt{Y/${n}}}$ qanday taqsimotga ega?`,
+    ru:`$Z \\sim N(0,1)$ и $Y \\sim \\chi^2(${n})$ независимы. Какое распределение имеет $T = \\dfrac{Z}{\\sqrt{Y/${n}}}$?`,
+    en:`$Z \\sim N(0,1)$ and $Y \\sim \\chi^2(${n})$ are independent. What distribution does $T = \\dfrac{Z}{\\sqrt{Y/${n}}}$ have?`
+  });
+  const opts = [
+    {k:'a', t:`$N(0, 1)$`},
+    {k:'b', t:`$\\chi^2(${n})$`},
+    {k:'c', t:`$t(${n})$`},
+    {k:'d', t:`$F(1, ${n})$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$t$-taqsimotning to'liq ta'rifi:</p>
+    ${step('Definition', `$T = \\dfrac{Z}{\\sqrt{Y/n}}, \\; Z \\sim N(0,1), \\; Y \\sim \\chi^2(n) \\Rightarrow T \\sim t(n)$`)}
+    ${step('Substitute n=' + n, `$T = \\dfrac{Z}{\\sqrt{Y/${n}}} \\sim t(${n})$`)}
+    ${ans(`(c) $t(${n})$`)}`;
+  return singleCard(32,3,text,opts,'c',sol);
+}
+
+// =========================================================
+//  Q33: F-distribution (randomized, m vs n order matters)
+// =========================================================
+function buildQ33(){
+  const {m,n} = P.q33;
+  const text = trilang({
+    uz:`$U \\sim \\chi^2(${m})$ va $V \\sim \\chi^2(${n})$ mustaqil. $F = \\dfrac{U/${m}}{V/${n}}$ qanday taqsimotga ega?`,
+    ru:`$U \\sim \\chi^2(${m})$ и $V \\sim \\chi^2(${n})$ независимы. Какое распределение имеет $F = \\dfrac{U/${m}}{V/${n}}$?`,
+    en:`$U \\sim \\chi^2(${m})$ and $V \\sim \\chi^2(${n})$ are independent. What distribution does $F = \\dfrac{U/${m}}{V/${n}}$ have?`
+  });
+  const opts = [
+    {k:'a', t:`$F(${n}, ${m})$`},
+    {k:'b', t:`$\\chi^2(${m+n})$`},
+    {k:'c', t:`$F(${m}, ${n})$`},
+    {k:'d', t:`$t(${m+n})$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$F$-taqsimotning ta'rifi (tartibga e'tibor: birinchi numerator):</p>
+    ${step('Definition', `$\\dfrac{U/m}{V/n} \\sim F(m, n)$`)}
+    ${step('Substitute', `$\\dfrac{U/${m}}{V/${n}} \\sim F(${m}, ${n})$`)}
+    <p>Eslatma: $F(${m},${n}) \\ne F(${n},${m})$ — tartib muhim!</p>
+    ${ans(`(c) $F(${m}, ${n})$`)}`;
+  return singleCard(33,3,text,opts,'c',sol);
+}
+
+
+// =========================================================
+//  Q34: t(k) — randomized
+// =========================================================
+function buildQ34(){
+  const {k} = P.q34;
+  const total = k+1; // need k+1 random vars: Z_1 in numerator, Z_2..Z_{k+1} in denominator
+  const denomList = Array.from({length:k}, (_,i)=>`Z_${i+2}^2`).join(' + ');
+  const text = trilang({
+    uz:`$Z_1, \\ldots, Z_${total} \\sim N(0, 1)$ mustaqil. Quyidagilardan qaysi biri $t(${k})$ taqsimotiga ega?`,
+    ru:`$Z_1, \\ldots, Z_${total} \\sim N(0, 1)$ независимы. Какое выражение имеет распределение $t(${k})$?`,
+    en:`$Z_1, \\ldots, Z_${total} \\sim N(0, 1)$ independent. Which has $t(${k})$ distribution?`
+  });
+  // For option B: wrong because numerator has 2 vars (not single Z) and no /k division
+  const denomNoSq = Array.from({length:k}, (_,i)=>`Z_${i+2}^2`).join(' + ');
+  const opts = [
+    {k:'a', t:`$\\dfrac{Z_1}{\\sqrt{(${denomList})/${k}}}$`},
+    {k:'b', t:`$\\dfrac{Z_1 + Z_2}{\\sqrt{${denomNoSq}}}$`},
+    {k:'c', t:`$\\dfrac{Z_1^2}{\\sqrt{(${denomList})/${k}}}$`},
+    {k:'d', t:`$\\dfrac{Z_1}{\\sqrt{(Z_1^2 + ${Array.from({length:k-1}, (_,i)=>`Z_${i+2}^2`).join(' + ')})/${k}}}$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    <p>$t(k)$ ta'rifiga ko'ra: $T = \\dfrac{Z}{\\sqrt{Y/k}}$, bu yerda $Z \\sim N(0,1)$, $Y \\sim \\chi^2(k)$, mustaqil.</p>
+    ${step('Build Y', `$Y = ${denomList} \\sim \\chi^2(${k})$ (chunki ${k} ta mustaqil $N(0,1)$ kvadrati)`)}
+    ${step('Independence', `$Z_1$ — $Y$ tarkibida ishtirok etmaydi, demak $Z_1 \\perp Y$`)}
+    ${step('Result', `$\\dfrac{Z_1}{\\sqrt{Y/${k}}} = \\dfrac{Z_1}{\\sqrt{(${denomList})/${k}}} \\sim t(${k})$`)}
+    <p>Boshqa variantlardagi xatolar: numerator kvadratga olingan, mustaqillik buzilgan, yoki erkin daraja noto'g'ri.</p>
+    ${ans(`(a)`)}`;
+  return singleCard(34,3,text,opts,'a',sol);
+}
+
+// =========================================================
+//  Q35: chi^2(n) (randomized)
+// =========================================================
+function buildQ35(){
+  const {mu, sigma, n} = P.q35;
+  const sigma2 = sigma*sigma;
+  const text = trilang({
+    uz:`$X_1, \\ldots, X_${n} \\sim N(${mu}, ${sigma2})$ mustaqil. $W = \\sum_{i=1}^{${n}} \\left(\\dfrac{X_i-${mu}}{${sigma}}\\right)^2$ qanday taqsimotga ega?`,
+    ru:`$X_1, \\ldots, X_${n} \\sim N(${mu}, ${sigma2})$ независимы. Какое распределение имеет $W = \\sum_{i=1}^{${n}} \\left(\\dfrac{X_i-${mu}}{${sigma}}\\right)^2$?`,
+    en:`$X_1, \\ldots, X_${n} \\sim N(${mu}, ${sigma2})$ independent. What distribution does $W = \\sum_{i=1}^{${n}} \\left(\\dfrac{X_i-${mu}}{${sigma}}\\right)^2$ have?`
+  });
+  const opts = [
+    {k:'a', t:`$\\chi^2(${Math.max(1,Math.floor(n/2))})$`},
+    {k:'b', t:`$N(${n}, ${2*n})$`},
+    {k:'c', t:`$\\chi^2(${n})$`},
+    {k:'d', t:`$t(${n})$`}
+  ];
+  const sol = `<h4>Yechim / Решение / Solution</h4>
+    ${step('Standardize', `$Z_i = \\dfrac{X_i - ${mu}}{${sigma}} \\sim N(0, 1)$`)}
+    ${step('Square', `$Z_i^2 \\sim \\chi^2(1)$`)}
+    ${step('Sum', `$W = \\sum_{i=1}^{${n}} Z_i^2 \\sim \\chi^2(${n})$`)}
+    ${ans(`(c) $\\chi^2(${n})$`)}`;
+  return singleCard(35,3,text,opts,'c',sol);
+}
+
+// =========================================================
+//  RENDER ALL
+// =========================================================
+const builders = [
+  buildQ1, buildQ2, buildQ3, buildQ4, buildQ5, buildQ6, buildQ7, buildQ8, buildQ9, buildQ10,
+  buildQ11, buildQ12, buildQ13, buildQ14, buildQ15, buildQ16, buildQ17, buildQ18, buildQ19, buildQ20,
+  buildQ21, buildQ22, buildQ23, buildQ24, buildQ25, buildQ26, buildQ27, buildQ28, buildQ29, buildQ30,
+  buildQ31, buildQ32, buildQ33, buildQ34, buildQ35
+];
+
+let questionData = {}; // store answers / data per question
+
+function renderAll(){
+  P = genParams();
+  questionData = {};
+  let html = '';
+  builders.forEach((b, i) => {
+    const num = i+1;
+    const data = b();
+    questionData[num] = data;
+    html += data.html;
+  });
+  document.getElementById('questions').innerHTML = html;
+  document.getElementById('result-summary').classList.remove('show');
+  // Re-typeset MathJax
+  if(window.MathJax && MathJax.typesetPromise){
+    MathJax.typesetPromise();
+  }
+}
+
+function regenerateAll(){
+  renderAll();
+}
+
+// =========================================================
+//  CHECK
+// =========================================================
+function gradeSingle(num){
+  const data = questionData[num];
+  const sel = document.querySelector(`input[name="q${num}"]:checked`);
+  const card = document.getElementById(`card-q${num}`);
+  const fb = document.getElementById(`fb-q${num}`);
+  const solBtn = document.getElementById(`sol-btn-q${num}`);
+  const correct = data.answer;
+  card.classList.remove('correct-card','wrong-card','partial-card');
+  fb.classList.remove('correct','wrong','partial');
+  fb.classList.add('show');
+  solBtn.style.display = 'inline-block';
+  if(!sel){
+    card.classList.add('wrong-card');
+    fb.classList.add('wrong');
+    fb.innerHTML = `Javob berilmagan / Нет ответа / Not answered &mdash; <b>0 ball</b>. To'g'ri javob: <b>(${correct})</b>`;
+    return 0;
+  }
+  if(sel.value === correct){
+    card.classList.add('correct-card');
+    fb.classList.add('correct');
+    fb.innerHTML = `To'g'ri / Правильно / Correct &mdash; <b>+3 ball</b>`;
+    return 3;
+  } else {
+    card.classList.add('wrong-card');
+    fb.classList.add('wrong');
+    fb.innerHTML = `Noto'g'ri / Неправильно / Incorrect &mdash; <b>0 ball</b>. To'g'ri javob: <b>(${correct})</b>`;
+    return 0;
+  }
+}
+
+function gradeMatch(num){
+  const data = questionData[num];
+  const card = document.getElementById(`card-q${num}`);
+  const fb = document.getElementById(`fb-q${num}`);
+  const solBtn = document.getElementById(`sol-btn-q${num}`);
+  const ans = data.matchAnswers;
+  let correct = 0, selected = 0, total = 0;
+  for(const id in ans){
+    total++;
+    const v = document.getElementById(id) ? document.getElementById(id).value : '';
+    if(v){ selected++; if(v === ans[id]) correct++; }
+  }
+  const score = Math.round(correct * data.matchPerItem * 1000) / 1000;
+  card.classList.remove('correct-card','wrong-card','partial-card');
+  fb.classList.remove('correct','wrong','partial');
+  fb.classList.add('show');
+  solBtn.style.display = 'inline-block';
+  if(selected === 0){
+    card.classList.add('wrong-card');
+    fb.classList.add('wrong');
+    fb.innerHTML = `Javob berilmagan / Нет ответа &mdash; <b>0 ball</b>`;
+  } else if(correct === total){
+    card.classList.add('correct-card');
+    fb.classList.add('correct');
+    fb.innerHTML = `Barchasi to'g'ri / Все верно &mdash; <b>+${data.matchTotal} ball</b>`;
+  } else if(correct > 0){
+    card.classList.add('partial-card');
+    fb.classList.add('partial');
+    fb.innerHTML = `Qisman to'g'ri / Частично верно (${correct}/${total}) &mdash; <b>+${score} ball</b>`;
+  } else {
+    card.classList.add('wrong-card');
+    fb.classList.add('wrong');
+    fb.innerHTML = `Hammasi noto'g'ri / Все неверно &mdash; <b>0 ball</b>`;
+  }
+  return score;
+}
+
+function checkAll(){
+  let total = 0;
+  for(let n = 1; n <= 35; n++){
+    const d = questionData[n];
+    if(d.isMatch) total += gradeMatch(n);
+    else total += gradeSingle(n);
+  }
+  total = Math.round(total * 1000) / 1000;
+  const r = document.getElementById('result-summary');
+  r.classList.add('show');
+  r.innerHTML = `Umumiy ball / Общий балл / Total: <b>${total}</b> / 105`;
+  if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise(); }
+  r.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function toggleSol(num){
+  const sol = document.getElementById(`sol-q${num}`);
+  const btn = document.getElementById(`sol-btn-q${num}`);
+  if(sol.classList.contains('show')){
+    sol.classList.remove('show');
+    btn.textContent = 'Yechim / Решение / Solution';
+  } else {
+    sol.classList.add('show');
+    btn.textContent = 'Yashirish / Скрыть / Hide';
+    if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise([sol]); }
+  }
+}
+
+// Initial render
+renderAll();
+</script>
 </body>
 </html>
